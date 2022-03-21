@@ -2,6 +2,14 @@
 
 Backend module
 
+### Install the module
+
+```shell
+npm i '@types/lodash' lodash
+hgm i fi.hg.core
+hgm i fi.hg.backend
+```
+
 ### EmailAuthController
 
 You can use the `EmailAuthController` in your HTTP controller as follows:
@@ -72,7 +80,9 @@ async function main () {
 
 See [hg-email-auth](https://github.com/heusalagroup/hg-email-auth) for how to use the service.
 
-This service requires `nodemailer`, `i18next` and `jws` modules as well as [hgm's](https://github.com/heusalagroup/hgm) submodule [fi.hg.auth.email](https://github.com/heusalagroup/fi.hg.auth.email):
+#### Installation
+
+This service depends on `nodemailer`, `i18next` and `jws` modules as well as [hgm's](https://github.com/heusalagroup/hgm) submodule [fi.hg.auth.email](https://github.com/heusalagroup/fi.hg.auth.email):
 
 ```shell
 npm i '@types/i18next' i18next

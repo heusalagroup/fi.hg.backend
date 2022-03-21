@@ -7,13 +7,13 @@ import { isString } from "../core/modules/lodash";
 
 export class JwtService {
 
-    private static _defaultAlgorithm: Algorithm = 'HS256';
+    private static _defaultAlgorithm: string = 'HS256';
 
-    public static getDefaultAlgorithm (): Algorithm {
+    public static getDefaultAlgorithm (): string {
         return JwtService._defaultAlgorithm;
     }
 
-    public static setDefaultAlgorithm (value: Algorithm) {
+    public static setDefaultAlgorithm (value: string) {
         JwtService._defaultAlgorithm = value;
     }
 
@@ -38,30 +38,30 @@ export class JwtService {
 
     public static createJwtEngine (
         secret: string,
-        defaultAlgorithm ?: Algorithm
+        defaultAlgorithm ?: string
     ): JwtEngine {
-        let _defaultAlgorithm: Algorithm | undefined = defaultAlgorithm;
+        let _defaultAlgorithm: string | undefined = defaultAlgorithm;
         return {
-            getDefaultAlgorithm: (): Algorithm => {
+            getDefaultAlgorithm: (): string => {
                 return _defaultAlgorithm ?? JwtService.getDefaultAlgorithm();
             },
-            setDefaultAlgorithm: (value: Algorithm): void => {
+            setDefaultAlgorithm: (value: string): void => {
                 _defaultAlgorithm = value;
             },
             sign: (
                 payload: ReadonlyJsonObject,
-                alg?: Algorithm
+                alg?: string
             ): string => {
                 return jwsSign(
                     {
-                        header: {alg: alg ?? JwtService.getDefaultAlgorithm()},
+                        header: {alg: (alg ?? JwtService.getDefaultAlgorithm()) as unknown as Algorithm},
                         payload: payload,
                         secret: secret
                     }
                 );
             },
-            verify: (token: string, alg?: Algorithm): boolean => {
-                return jwsVerify(token, alg ?? _defaultAlgorithm ?? JwtService.getDefaultAlgorithm(), secret);
+            verify: (token: string, alg?: string): boolean => {
+                return jwsVerify(token, (alg ?? _defaultAlgorithm ?? JwtService.getDefaultAlgorithm()) as unknown as Algorithm, secret);
             }
         };
     }
