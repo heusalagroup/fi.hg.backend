@@ -57,8 +57,8 @@ export class EmailAuthController {
 
             if ( !isAuthenticateEmailDTO(body) ) {
                 return ResponseEntity.badRequest<ErrorDTO>().body(
-                    createErrorDTO(`Body not AuthenticateEmailDTO`)
-                );
+                    createErrorDTO(`Body not AuthenticateEmailDTO`, 400)
+                ).status(400);
             }
 
             LOG.debug('authenticateEmail: body = ', body);
@@ -66,7 +66,7 @@ export class EmailAuthController {
             if ( !email ) {
                 return ResponseEntity.badRequest<ErrorDTO>().body(
                     createErrorDTO(`body.email required`, 400)
-                );
+                ).status(400);
             }
 
             const code: string = EmailVerificationService.createVerificationCode(email);
@@ -78,7 +78,7 @@ export class EmailAuthController {
                 LOG.error(`authenticateEmail: Could not send email: `, err);
                 return ResponseEntity.internalServerError<ErrorDTO>().body(
                     createErrorDTO('Internal error',500)
-                );
+                ).status(500);
             }
 
             return ResponseEntity.ok<EmailTokenDTO>(emailToken);
@@ -87,7 +87,7 @@ export class EmailAuthController {
             LOG.error(`ERROR: `, err);
             return ResponseEntity.internalServerError<ErrorDTO>().body(
                 createErrorDTO('Internal Server Error', 500)
-            );
+            ).status(500);
         }
 
     }
@@ -106,8 +106,8 @@ export class EmailAuthController {
 
             if ( !isVerifyEmailCodeDTO(body) ) {
                 return ResponseEntity.badRequest<ErrorDTO>().body(
-                    createErrorDTO(`Body not VerifyEmailCodeDTO`)
-                );
+                    createErrorDTO(`Body not VerifyEmailCodeDTO`, 400)
+                ).status(400);
             }
             LOG.debug('verifyEmailCode: body = ', body);
 
@@ -119,13 +119,13 @@ export class EmailAuthController {
             if ( !(email && code && EmailVerificationService.verifyCode(email, code)) ) {
                 return ResponseEntity.internalServerError<ErrorDTO>().body(
                     createErrorDTO('Access denied', 403)
-                );
+                ).status(403);
             }
 
             if ( !(token && email && EmailTokenService.verifyToken(email, token, false)) ) {
                 return ResponseEntity.internalServerError<ErrorDTO>().body(
                     createErrorDTO('Access denied', 403)
-                );
+                ).status(403);
             }
 
             const emailToken: EmailTokenDTO = EmailTokenService.createVerifiedEmailToken(email);
@@ -135,8 +135,8 @@ export class EmailAuthController {
         } catch (err) {
             LOG.error(`ERROR: `, err);
             return ResponseEntity.internalServerError<ErrorDTO>().body(
-                createErrorDTO('Internal Server Error')
-            );
+                createErrorDTO('Internal Server Error', 500)
+            ).status(500);
         }
 
     }
@@ -155,8 +155,8 @@ export class EmailAuthController {
 
             if ( !isVerifyEmailTokenDTO(body) ) {
                 return ResponseEntity.badRequest<ErrorDTO>().body(
-                    createErrorDTO(`Body not VerifyEmailTokenDTO`)
-                );
+                    createErrorDTO(`Body not VerifyEmailTokenDTO`, 400)
+                ).status(400);
             }
 
             LOG.debug('verifyEmailToken: body = ', body);
@@ -164,9 +164,9 @@ export class EmailAuthController {
             const email: string = body?.token?.email ?? '';
 
             if ( !(token && email && EmailTokenService.verifyToken(email, token, true)) ) {
-                return ResponseEntity.internalServerError<ErrorDTO>().body(
+                return ResponseEntity.badRequest<ErrorDTO>().body(
                     createErrorDTO('Access denied',403)
-                );
+                ).status(403);
             }
 
             const emailToken: EmailTokenDTO = EmailTokenService.createVerifiedEmailToken(email);
@@ -176,8 +176,8 @@ export class EmailAuthController {
         } catch (err) {
             LOG.error(`ERROR: `, err);
             return ResponseEntity.internalServerError<ErrorDTO>().body(
-                createErrorDTO('Internal Server Error')
-            );
+                createErrorDTO('Internal Server Error', 500)
+            ).status(500);
         }
 
     }

@@ -37,5 +37,3 @@ export function parseEmailTokenDTO (value: any): EmailTokenDTO | undefined {
     if ( isEmailTokenDTO(value) ) return value;
     return undefined;
 }
-
-
