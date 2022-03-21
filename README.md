@@ -72,7 +72,14 @@ async function main () {
 
 See [hg-email-auth](https://github.com/heusalagroup/hg-email-auth) for how to use the service.
 
-This service requires `nodemailer`, `i18n` and `jws` modules as well as hgm's fi.hg.auth.email submodule (`hgm i fi.hg.auth.email`).
+This service requires `nodemailer`, `i18next` and `jws` modules as well as [hgm's](https://github.com/heusalagroup/hgm) submodule [fi.hg.auth.email](https://github.com/heusalagroup/fi.hg.auth.email):
 
-See also [@heusalagroup/create-backend](https://github.com/heusalagroup/create-backend) for how to create your own backend.
+```shell
+npm i '@types/i18next' i18next
+npm i '@types/nodemailer' nodemailer
+npm i '@types/jws' jws
+hgm i fi.hg.auth.email
+```
+
+See also [@heusalagroup/create-backend](https://github.com/heusalagroup/create-backend) for how to initialize your own backend project.
 
