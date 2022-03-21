@@ -2,7 +2,6 @@
 
 Backend module
 
-
 ### EmailAuthController
 
 You can use the `EmailAuthController` in your HTTP controller as follows:
@@ -71,6 +70,9 @@ async function main () {
 
 ```
 
-See [@heusalagroup/create-backend](https://github.com/heusalagroup/create-backend) for how to use the backend controller.
+See [hg-email-auth](https://github.com/heusalagroup/hg-email-auth) for how to use the service.
 
-This service also requires `nodemailer`, `i18n` and `jws` modules.
+This service requires `nodemailer`, `i18n` and `jws` modules as well as hgm's fi.hg.auth.email submodule (`hgm i fi.hg.auth.email`).
+
+See also [@heusalagroup/create-backend](https://github.com/heusalagroup/create-backend) for how to create your own backend.
+

@@ -1,5 +1,4 @@
 // Copyright (c) 2022. <info@heusalagroup.fi>. All rights reserved.
-//
 
 import { Language } from "../core/types/Language";
 import { BackendTranslationService } from "./BackendTranslationService";
@@ -11,7 +10,7 @@ import {
     T_M_AUTH_CODE_HEADER_HTML,
     T_M_AUTH_CODE_HEADER_TEXT,
     T_M_AUTH_CODE_SUBJECT
-} from "../../palvelinkauppa/core/constants/translation";
+} from "../auth/email/translation";
 import {
     EmailMessage,
     EmailService
@@ -63,8 +62,4 @@ export class EmailAuthMessageService {
 
     }
 
-}
-
-export function isAuthEmailMessageService (value: any): value is EmailAuthMessageService {
-    return value instanceof EmailAuthMessageService;
 }
