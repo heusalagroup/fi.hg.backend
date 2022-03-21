@@ -12,6 +12,16 @@ export interface ErrorDTO {
     readonly code  ?: number;
 }
 
+export function createErrorDTO (
+    error  : string,
+    code  ?: number
+) : ErrorDTO {
+    return {
+        error,
+        code
+    };
+}
+
 export function isErrorDTO (value: any): value is ErrorDTO {
     return (
         isRegularObject(value)
