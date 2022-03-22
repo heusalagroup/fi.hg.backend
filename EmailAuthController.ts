@@ -3,17 +3,17 @@
 
 import { ReadonlyJsonObject } from "../core/Json";
 import { ResponseEntity } from "../core/request/ResponseEntity";
-import { EmailTokenDTO } from "./types/EmailTokenDTO";
+import { createErrorDTO, ErrorDTO } from "../core/types/ErrorDTO";
 import { Language, parseLanguage } from "../core/types/Language";
-import { isAuthenticateEmailDTO } from "./types/AuthenticateEmailDTO";
+import { isAuthenticateEmailDTO } from "../auth/email/types/AuthenticateEmailDTO";
 import { EmailVerificationService } from "./EmailVerificationService";
 import { EmailTokenService } from "./EmailTokenService";
 import { LogService } from "../core/LogService";
 import { EmailAuthMessageService } from "./EmailAuthMessageService";
-import { isVerifyEmailTokenDTO } from "./types/VerifyEmailTokenDTO";
-import { isVerifyEmailCodeDTO } from "./types/VerifyEmailCodeDTO";
-import { createErrorDTO, ErrorDTO } from "../core/types/ErrorDTO";
 import { isString } from "../core/modules/lodash";
+import { isVerifyEmailTokenDTO } from "../auth/email/types/VerifyEmailTokenDTO";
+import { isVerifyEmailCodeDTO } from "../auth/email/types/VerifyEmailCodeDTO";
+import { EmailTokenDTO } from "../auth/email/types/EmailTokenDTO";
 
 const LOG = LogService.createLogger('EmailAuthController');
 
