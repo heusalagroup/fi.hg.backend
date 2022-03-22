@@ -4,7 +4,6 @@
 import { ReadonlyJsonObject } from "../core/Json";
 import { ResponseEntity } from "../core/request/ResponseEntity";
 import { EmailTokenDTO } from "./types/EmailTokenDTO";
-import { createErrorDTO, ErrorDTO } from "./types/ErrorDTO";
 import { Language, parseLanguage } from "../core/types/Language";
 import { isAuthenticateEmailDTO } from "./types/AuthenticateEmailDTO";
 import { EmailVerificationService } from "./EmailVerificationService";
@@ -13,6 +12,8 @@ import { LogService } from "../core/LogService";
 import { EmailAuthMessageService } from "./EmailAuthMessageService";
 import { isVerifyEmailTokenDTO } from "./types/VerifyEmailTokenDTO";
 import { isVerifyEmailCodeDTO } from "./types/VerifyEmailCodeDTO";
+import { createErrorDTO, ErrorDTO } from "../core/types/ErrorDTO";
+import { isString } from "../core/modules/lodash";
 
 const LOG = LogService.createLogger('EmailAuthController');
 
@@ -24,6 +25,7 @@ const LOG = LogService.createLogger('EmailAuthController');
  *  2. Call .verifyEmailCode(body) to verify user supplied code from the email and create a session JWT
  *  3. Call .verifyEmailToken(body) to verify validity of the previously created session JWT and to refresh the session
  *
+ * The .verifyTokenAndReturnSubject(token) can be used to validate internally API calls in your own APIs.
  */
 export class EmailAuthController {
 
@@ -48,7 +50,7 @@ export class EmailAuthController {
      */
     public static async authenticateEmail (
         body: ReadonlyJsonObject,
-        langString : string = ""
+        langString: string = ""
     ): Promise<ResponseEntity<EmailTokenDTO | ErrorDTO>> {
 
         try {
@@ -77,7 +79,7 @@ export class EmailAuthController {
             } catch (err) {
                 LOG.error(`authenticateEmail: Could not send email: `, err);
                 return ResponseEntity.internalServerError<ErrorDTO>().body(
-                    createErrorDTO('Internal error',500)
+                    createErrorDTO('Internal error', 500)
                 ).status(500);
             }
 
@@ -165,7 +167,7 @@ export class EmailAuthController {
 
             if ( !(token && email && EmailTokenService.verifyToken(email, token, true)) ) {
                 return ResponseEntity.badRequest<ErrorDTO>().body(
-                    createErrorDTO('Access denied',403)
+                    createErrorDTO('Access denied', 403)
                 ).status(403);
             }
 
@@ -180,6 +182,23 @@ export class EmailAuthController {
             ).status(500);
         }
 
+    }
+
+    /**
+     * Can be used internally in APIs to validate and return the subject of this token.
+     */
+    public static async verifyTokenAndReturnSubject (
+        token: string
+    ): Promise<string> {
+        LOG.debug('verifyTokenAndReturnSubject: token = ', token);
+        if ( !isString(token) ) throw new TypeError('Argument must be string');
+        if ( !EmailTokenService.isTokenValid(token) ) {
+            throw new TypeError('Token was invalid: ' + token);
+        }
+        if ( !EmailTokenService.isTokenVerified(token) ) {
+            throw new TypeError('Token was not verified: ' + token);
+        }
+        return EmailTokenService.getTokenSubject(token);
     }
 
 }

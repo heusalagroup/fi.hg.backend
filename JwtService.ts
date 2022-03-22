@@ -3,7 +3,7 @@
 import { Algorithm, decode as jwsDecode, sign as jwsSign, verify as jwsVerify } from "jws";
 import { JwtEngine } from "./JwtEngine";
 import { ReadonlyJsonObject } from "../core/Json";
-import { isString } from "../core/modules/lodash";
+import { isBoolean, isString } from "../core/modules/lodash";
 
 export class JwtService {
 
@@ -25,15 +25,22 @@ export class JwtService {
     public static decodePayloadAudience (token: string) : string {
         const payload = JwtService.decodePayload(token);
         const aud = payload?.aud;
-        if (!isString(aud)) throw new TypeError(`getTokenAudience: Payload "aud" not string: ` +  token);
+        if (!isString(aud)) throw new TypeError(`decodePayloadAudience: Payload "aud" not string: ` +  token);
         return aud;
     }
 
     public static decodePayloadSubject (token: string) : string {
         const payload = JwtService.decodePayload(token);
         const sub = payload?.sub;
-        if (!isString(sub)) throw new TypeError(`getTokenAudience: Payload "sub" not string: ` +  token);
+        if (!isString(sub)) throw new TypeError(`decodePayloadSubject: Payload "sub" not string: ` +  token);
         return sub;
+    }
+
+    public static decodePayloadVerified (token: string) : boolean {
+        const payload = JwtService.decodePayload(token);
+        const verified = payload?.verified;
+        if (!isBoolean(verified)) throw new TypeError(`decodePayloadVerified: Payload "verified" not boolean: ` +  token);
+        return verified;
     }
 
     public static createJwtEngine (
