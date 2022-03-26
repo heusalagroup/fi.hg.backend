@@ -4,6 +4,9 @@ import { Algorithm, decode as jwsDecode, sign as jwsSign, verify as jwsVerify } 
 import { JwtEngine } from "./JwtEngine";
 import { ReadonlyJsonObject } from "../core/Json";
 import { isBoolean, isString } from "../core/modules/lodash";
+import { LogService } from "../core/LogService";
+
+const LOG = LogService.createLogger('JwtService');
 
 export class JwtService {
 
@@ -25,21 +28,30 @@ export class JwtService {
     public static decodePayloadAudience (token: string) : string {
         const payload = JwtService.decodePayload(token);
         const aud = payload?.aud;
-        if (!isString(aud)) throw new TypeError(`decodePayloadAudience: Payload "aud" not string: ` +  token);
+        if (!isString(aud)) {
+            LOG.debug(`payload: `, payload);
+            throw new TypeError(`decodePayloadAudience: Payload "aud" not string: ` +  token);
+        }
         return aud;
     }
 
     public static decodePayloadSubject (token: string) : string {
         const payload = JwtService.decodePayload(token);
         const sub = payload?.sub;
-        if (!isString(sub)) throw new TypeError(`decodePayloadSubject: Payload "sub" not string: ` +  token);
+        if (!isString(sub)) {
+            LOG.debug(`payload: `, payload);
+            throw new TypeError(`decodePayloadSubject: Payload "sub" not string: ` +  token);
+        }
         return sub;
     }
 
     public static decodePayloadVerified (token: string) : boolean {
         const payload = JwtService.decodePayload(token);
         const verified = payload?.verified;
-        if (!isBoolean(verified)) throw new TypeError(`decodePayloadVerified: Payload "verified" not boolean: ` +  token);
+        if (!isBoolean(verified)) {
+            LOG.debug(`payload: `, payload);
+            throw new TypeError(`decodePayloadVerified: Payload "verified" not boolean: ` +  token);
+        }
         return verified;
     }
 

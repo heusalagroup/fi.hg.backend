@@ -1,7 +1,7 @@
 // Copyright (c) 2022. <info@heusalagroup.fi>. All rights reserved.
 //
 
-import { ReadonlyJsonObject } from "../core/Json";
+import { ReadonlyJsonAny } from "../core/Json";
 import { ResponseEntity } from "../core/request/ResponseEntity";
 import { createErrorDTO, ErrorDTO } from "../core/types/ErrorDTO";
 import { Language, parseLanguage } from "../core/types/Language";
@@ -49,7 +49,7 @@ export class EmailAuthController {
      * @param langString {Language} The optional language of the message
      */
     public static async authenticateEmail (
-        body: ReadonlyJsonObject,
+        body: ReadonlyJsonAny,
         langString: string = ""
     ): Promise<ResponseEntity<EmailTokenDTO | ErrorDTO>> {
 
@@ -101,12 +101,13 @@ export class EmailAuthController {
      * @param body {VerifyEmailCodeDTO}
      */
     public static async verifyEmailCode (
-        body: ReadonlyJsonObject
+        body: ReadonlyJsonAny
     ): Promise<ResponseEntity<EmailTokenDTO | ErrorDTO>> {
 
         try {
 
             if ( !isVerifyEmailCodeDTO(body) ) {
+                LOG.debug(`Access denied:`, body);
                 return ResponseEntity.badRequest<ErrorDTO>().body(
                     createErrorDTO(`Body not VerifyEmailCodeDTO`, 400)
                 ).status(400);
@@ -119,19 +120,21 @@ export class EmailAuthController {
             const code: string = body?.code;
 
             if ( !(email && code && EmailVerificationService.verifyCode(email, code)) ) {
+                LOG.info(`Access denied for "${email}" since code is not correct`);
                 return ResponseEntity.internalServerError<ErrorDTO>().body(
                     createErrorDTO('Access denied', 403)
                 ).status(403);
             }
 
             if ( !(token && email && EmailTokenService.verifyToken(email, token, false)) ) {
+                LOG.info(`Access denied for "${email}" since token is not valid`);
                 return ResponseEntity.internalServerError<ErrorDTO>().body(
                     createErrorDTO('Access denied', 403)
                 ).status(403);
             }
 
             const emailToken: EmailTokenDTO = EmailTokenService.createVerifiedEmailToken(email);
-
+            LOG.debug('verifyEmailCode: emailToken = ', emailToken);
             return ResponseEntity.ok<EmailTokenDTO>(emailToken);
 
         } catch (err) {
@@ -150,7 +153,7 @@ export class EmailAuthController {
      * @param body {VerifyEmailTokenDTO}
      */
     public static async verifyEmailToken (
-        body: ReadonlyJsonObject
+        body: ReadonlyJsonAny
     ): Promise<ResponseEntity<EmailTokenDTO | ErrorDTO>> {
 
         try {
@@ -195,10 +198,11 @@ export class EmailAuthController {
         if ( !EmailTokenService.isTokenValid(token) ) {
             throw new TypeError('Token was invalid: ' + token);
         }
-        if ( !EmailTokenService.isTokenVerified(token) ) {
+        const subject : string | undefined = EmailTokenService.getTokenSubject(token);
+        if (!subject) {
             throw new TypeError('Token was not verified: ' + token);
         }
-        return EmailTokenService.getTokenSubject(token);
+        return subject;
     }
 
 }
