@@ -10,7 +10,7 @@ import {
     T_M_AUTH_CODE_HEADER_HTML,
     T_M_AUTH_CODE_HEADER_TEXT,
     T_M_AUTH_CODE_SUBJECT
-} from "../auth/email/translation";
+} from "../core/auth/email/translation";
 import {
     EmailMessage,
     EmailService
