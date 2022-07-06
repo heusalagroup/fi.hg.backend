@@ -68,6 +68,11 @@ export class EmailTokenService {
                 return false;
             }
 
+            if ( !EmailTokenService._jwtEngine ) {
+                LOG.debug(`verifyToken: JWT Engine not initialized`);
+                return false;
+            }
+
             if ( !EmailTokenService._jwtEngine.verify(token, alg) ) {
                 LOG.debug(`verifyToken: Token was invalid: `, token);
                 return false;
@@ -108,33 +113,38 @@ export class EmailTokenService {
         alg   ?: Algorithm
     ): boolean {
         try {
-            LOG.debug(`verifyToken: email "${email}", "${token}"`);
+            LOG.debug(`verifyValidTokenForSubject: email "${email}", "${token}"`);
 
             if ( !(email && isString(email)) ) {
-                LOG.debug(`verifyToken: No email provided: `, email);
+                LOG.debug(`verifyValidTokenForSubject: No email provided: `, email);
                 return false;
             }
 
             if ( !token ) {
-                LOG.debug(`verifyToken: No token provided: `, token);
+                LOG.debug(`verifyValidTokenForSubject: No token provided: `, token);
+                return false;
+            }
+
+            if ( !EmailTokenService._jwtEngine ) {
+                LOG.debug(`verifyValidTokenForSubject: JWT Engine not initialized`);
                 return false;
             }
 
             if ( !EmailTokenService._jwtEngine.verify(token, alg) ) {
-                LOG.debug(`verifyToken: Token was invalid: `, token);
+                LOG.debug(`verifyValidTokenForSubject: Token was invalid: `, token);
                 return false;
             }
 
             const payload = JwtService.decodePayload(token);
             if ( payload?.sub !== email ) {
-                LOG.debug(`verifyToken: "sub" did not match: `, payload?.sub, email);
+                LOG.debug(`verifyValidTokenForSubject: "sub" did not match: `, payload?.sub, email);
                 return false;
             }
-            LOG.debug(`verifyToken: Success: `, payload);
+            LOG.debug(`verifyValidTokenForSubject: Success: `, payload);
             return true;
 
         } catch (err) {
-            LOG.error(`verifyToken: Could not verify token: `, err, token, email);
+            LOG.error(`verifyValidTokenForSubject: Could not verify token: `, err, token, email);
             return false;
         }
     }
