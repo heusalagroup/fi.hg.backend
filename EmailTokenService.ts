@@ -6,6 +6,7 @@ import { LogService } from "../core/LogService";
 import { JwtEngine } from "./JwtEngine";
 import { JwtService } from "./JwtService";
 import { isString } from "../core/modules/lodash";
+import { LogLevel } from "../core/types/LogLevel";
 
 const UNVERIFIED_JWT_TOKEN_EXPIRATION_MINUTES = 5;
 const VERIFIED_JWT_TOKEN_EXPIRATION_DAYS = 365;
@@ -13,6 +14,10 @@ const VERIFIED_JWT_TOKEN_EXPIRATION_DAYS = 365;
 const LOG = LogService.createLogger('EmailTokenService');
 
 export class EmailTokenService {
+
+    public static setLogLevel (level: LogLevel) {
+        LOG.setLogLevel(level);
+    }
 
     private static _jwtEngine: JwtEngine | undefined;
 
