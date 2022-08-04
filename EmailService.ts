@@ -17,15 +17,28 @@ export interface EmailMessage {
 
 export class EmailService {
 
-    private static _from        : string | undefined;
-    private static _transporter : any | undefined;
+    private _from        : string | undefined;
+    private _transporter : any | undefined;
 
-    public static setDefaultFrom (from: string) {
+    /**
+     *
+     * @param from
+     * @param transporter
+     */
+    public constructor (
+        from         : string,
+        transporter ?: any | undefined
+    ) {
+        this._from = from;
+        this._transporter = transporter;
+    }
+
+    public setDefaultFrom (from: string) {
         this._from = from;
         LOG.info(`Default from address defined as `, this._from);
     }
 
-    public static initialize ( config  ?: string ) {
+    public initialize ( config  ?: string ) {
 
         config = trim(config ?? '');
 
@@ -73,7 +86,7 @@ export class EmailService {
 
     }
 
-    public static async sendEmailMessage (message: EmailMessage) {
+    public async sendEmailMessage (message: EmailMessage) {
 
         const to : string[] | string = message?.to;
         const cc : string[] | string = message?.cc;
@@ -107,5 +120,3 @@ export class EmailService {
     }
 
 }
-
-

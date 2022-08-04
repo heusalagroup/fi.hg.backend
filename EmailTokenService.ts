@@ -7,6 +7,7 @@ import { JwtEngine } from "./JwtEngine";
 import { JwtService } from "./JwtService";
 import { isString } from "../core/modules/lodash";
 import { LogLevel } from "../core/types/LogLevel";
+import { JwtUtils } from "./JwtUtils";
 
 const UNVERIFIED_JWT_TOKEN_EXPIRATION_MINUTES = 5;
 const VERIFIED_JWT_TOKEN_EXPIRATION_DAYS = 365;
@@ -19,12 +20,30 @@ export class EmailTokenService {
         LOG.setLogLevel(level);
     }
 
-    private static _jwtEngine: JwtEngine | undefined;
+    private readonly _jwtEngine: JwtEngine;
+    private readonly _unverifiedJwtTokenExpirationMinutes: number;
+    private readonly _verifiedJwtTokenExpirationDays: number;
 
-    public static setJwtEngine (value: JwtEngine) {
-        EmailTokenService._jwtEngine = value;
+    /**
+     *
+     * @param jwtEngine
+     * @param unverifiedJwtTokenExpirationMinutes
+     * @param verifiedJwtTokenExpirationDays
+     */
+    public constructor (
+        jwtEngine: JwtEngine,
+        unverifiedJwtTokenExpirationMinutes : number = UNVERIFIED_JWT_TOKEN_EXPIRATION_MINUTES,
+        verifiedJwtTokenExpirationDays      : number = VERIFIED_JWT_TOKEN_EXPIRATION_DAYS
+    ) {
+        this._jwtEngine = jwtEngine;
+        this._unverifiedJwtTokenExpirationMinutes = unverifiedJwtTokenExpirationMinutes;
+        this._verifiedJwtTokenExpirationDays = verifiedJwtTokenExpirationDays;
     }
 
+    /**
+     * @deprecated Use JwtService.decodePayloadAudience(token) directly
+     * @param token
+     */
     public static getTokenAudience (token: string): string | undefined {
         try {
             return JwtService.decodePayloadAudience(token);
@@ -34,6 +53,10 @@ export class EmailTokenService {
         }
     }
 
+    /**
+     * @deprecated Use JwtService.decodePayloadSubject(token) directly
+     * @param token
+     */
     public static getTokenSubject (token: string): string | undefined {
         try {
             return JwtService.decodePayloadSubject(token);
@@ -43,6 +66,10 @@ export class EmailTokenService {
         }
     }
 
+    /**
+     * @deprecated Use JwtService.decodePayloadVerified(token) directly
+     * @param token
+     */
     public static isTokenVerified (token: string): boolean {
         try {
             return JwtService.decodePayloadVerified(token);
@@ -52,7 +79,14 @@ export class EmailTokenService {
         }
     }
 
-    public static verifyToken (
+    /**
+     *
+     * @param email
+     * @param token
+     * @param requireVerifiedToken
+     * @param alg
+     */
+    public verifyToken (
         email: string,
         token: string,
         requireVerifiedToken: boolean,
@@ -73,12 +107,7 @@ export class EmailTokenService {
                 return false;
             }
 
-            if ( !EmailTokenService._jwtEngine ) {
-                LOG.debug(`verifyToken: JWT Engine not initialized`);
-                return false;
-            }
-
-            if ( !EmailTokenService._jwtEngine.verify(token, alg) ) {
+            if ( !this._jwtEngine.verify(token, alg) ) {
                 LOG.debug(`verifyToken: Token was invalid: `, token);
                 return false;
             }
@@ -112,7 +141,13 @@ export class EmailTokenService {
 
     }
 
-    public static verifyValidTokenForSubject (
+    /**
+     *
+     * @param token
+     * @param email
+     * @param alg
+     */
+    public verifyValidTokenForSubject (
         token: string,
         email: string,
         alg   ?: Algorithm
@@ -130,12 +165,7 @@ export class EmailTokenService {
                 return false;
             }
 
-            if ( !EmailTokenService._jwtEngine ) {
-                LOG.debug(`verifyValidTokenForSubject: JWT Engine not initialized`);
-                return false;
-            }
-
-            if ( !EmailTokenService._jwtEngine.verify(token, alg) ) {
+            if ( !this._jwtEngine.verify(token, alg) ) {
                 LOG.debug(`verifyValidTokenForSubject: Token was invalid: `, token);
                 return false;
             }
@@ -154,7 +184,12 @@ export class EmailTokenService {
         }
     }
 
-    public static isTokenValid (
+    /**
+     *
+     * @param token
+     * @param alg
+     */
+    public isTokenValid (
         token: string,
         alg   ?: Algorithm
     ): boolean {
@@ -165,7 +200,7 @@ export class EmailTokenService {
                 return false;
             }
 
-            if ( !EmailTokenService._jwtEngine.verify(token, alg) ) {
+            if ( !this._jwtEngine.verify(token, alg) ) {
                 LOG.debug(`verifyValidToken: Token was invalid: `, token);
                 return false;
             }
@@ -179,9 +214,15 @@ export class EmailTokenService {
         }
     }
 
-    public static verifyTokenOnly (
-        token: string,
-        requireVerifiedToken: boolean,
+    /**
+     *
+     * @param token
+     * @param requireVerifiedToken
+     * @param alg
+     */
+    public verifyTokenOnly (
+        token                : string,
+        requireVerifiedToken : boolean,
         alg                  ?: Algorithm
     ): boolean {
 
@@ -194,7 +235,7 @@ export class EmailTokenService {
                 return false;
             }
 
-            if ( !EmailTokenService._jwtEngine.verify(token, alg) ) {
+            if ( !this._jwtEngine.verify(token, alg) ) {
                 LOG.debug(`verifyTokenOnly: Token was invalid: `, token);
                 return false;
             }
@@ -228,18 +269,15 @@ export class EmailTokenService {
 
     }
 
-    public static createUnverifiedEmailToken (
+    public createUnverifiedEmailToken (
         email: string,
         alg                  ?: Algorithm
     ): EmailTokenDTO {
 
         try {
 
-            const signature = EmailTokenService._jwtEngine.sign(
-                {
-                    exp: Math.floor(Date.now() / 1000 + UNVERIFIED_JWT_TOKEN_EXPIRATION_MINUTES * 60),
-                    aud: email
-                },
+            const signature = this._jwtEngine.sign(
+                JwtUtils.createAudPayloadExpiringInMinutes(email, this._unverifiedJwtTokenExpirationMinutes),
                 alg
             );
 
@@ -255,16 +293,13 @@ export class EmailTokenService {
 
     }
 
-    public static createVerifiedEmailToken (
+    public createVerifiedEmailToken (
         email: string,
         alg ?: Algorithm
     ): EmailTokenDTO {
         try {
-            const signature = EmailTokenService._jwtEngine.sign(
-                {
-                    exp: Math.floor(Date.now() / 1000 + VERIFIED_JWT_TOKEN_EXPIRATION_DAYS * 24 * 60 * 60),
-                    sub: email
-                },
+            const signature = this._jwtEngine.sign(
+                JwtUtils.createSubPayloadExpiringInDays(email, this._verifiedJwtTokenExpirationDays),
                 alg
             );
             return {

@@ -1,16 +1,33 @@
 # fi.hg.backend
 
-Backend module
+HG Backend module
 
 ### Install the module
 
+This module depends on `nodemailer`, `i18next` and `jws` modules:
+
 ```shell
-npm i '@types/lodash' lodash
-hgm i fi.hg.core
-hgm i fi.hg.backend
+npm i '@types/i18next' i18next '@types/nodemailer' nodemailer '@types/jws' jws
 ```
 
-### EmailAuthController
+Our [fi.hg.core](https://github.com:heusalagroup/fi.hg.core) is also required dependency:
+
+```shell
+mkdir -p src/fi/hg
+git submodule add git@github.com:heusalagroup/fi.hg.core.git src/fi/hg/core
+git config -f .gitmodules submodule.src/fi/hg/core.branch main
+```
+
+Finally, you can set up the module itself:
+
+```shell
+git submodule add git@github.com:heusalagroup/fi.hg.backend.git src/fi/hg/backend
+git config -f .gitmodules submodule.src/fi/hg/backend.branch main
+```
+
+See also [@heusalagroup/create-backend](https://github.com/heusalagroup/create-backend) for how to initialize your own backend project.
+
+### `EmailAuthController`
 
 You can use the `EmailAuthController` in your HTTP controller as follows:
 
@@ -79,17 +96,3 @@ async function main () {
 ```
 
 See [hg-email-auth](https://github.com/heusalagroup/hg-email-auth) for how to use the service.
-
-#### Installation
-
-This service depends on `nodemailer`, `i18next` and `jws` modules as well as [hgm's](https://github.com/heusalagroup/hgm) submodule [fi.hg.auth.email](https://github.com/heusalagroup/fi.hg.auth.email):
-
-```shell
-npm i '@types/i18next' i18next
-npm i '@types/nodemailer' nodemailer
-npm i '@types/jws' jws
-hgm i fi.hg.auth.email
-```
-
-See also [@heusalagroup/create-backend](https://github.com/heusalagroup/create-backend) for how to initialize your own backend project.
-
