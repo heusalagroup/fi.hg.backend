@@ -73,27 +73,25 @@ export class JwtService {
     ): JwtEngine {
         let _defaultAlgorithm: string | undefined = defaultAlgorithm;
         return {
-            getDefaultAlgorithm: (): string => {
-                return _defaultAlgorithm ?? this.getDefaultAlgorithm();
-            },
+            getDefaultAlgorithm: (): string => _defaultAlgorithm ?? this.getDefaultAlgorithm(),
             setDefaultAlgorithm: (value: string): void => {
                 _defaultAlgorithm = value;
             },
             sign: (
                 payload: ReadonlyJsonObject,
                 alg?: string
-            ): string => {
-                return jwsSign(
+            ): string =>
+                jwsSign(
                     {
                         header: {alg: (alg ?? this.getDefaultAlgorithm()) as unknown as Algorithm},
                         payload: payload,
                         secret: secret
                     }
-                );
-            },
-            verify: (token: string, alg?: string): boolean => {
-                return jwsVerify(token, (alg ?? _defaultAlgorithm ?? this.getDefaultAlgorithm()) as unknown as Algorithm, secret);
-            }
+                ),
+            verify: (
+                token: string,
+                alg?: string
+            ): boolean => jwsVerify(token, (alg ?? _defaultAlgorithm ?? this.getDefaultAlgorithm()) as unknown as Algorithm, secret)
         };
     }
 

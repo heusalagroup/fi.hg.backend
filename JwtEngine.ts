@@ -7,5 +7,5 @@ export interface JwtEngine {
     getDefaultAlgorithm () : string;
     setDefaultAlgorithm (value: string) : void;
     sign(payload: ReadonlyJsonObject | JwtPayload, alg?: string) : string;
-    verify(token: string, alg: string) : boolean;
+    verify(token: string, alg?: string) : boolean;
 }
