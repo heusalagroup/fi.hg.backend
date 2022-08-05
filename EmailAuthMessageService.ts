@@ -17,11 +17,23 @@ import {
 } from "./EmailService";
 import { LogService } from "../core/LogService";
 
-const LOG = LogService.createLogger('AuthEmailMessageService');
+const LOG = LogService.createLogger('EmailAuthMessageService');
 
 export class EmailAuthMessageService {
 
-    public static async sendAuthenticationCode (
+    private readonly _emailService : EmailService;
+
+    /**
+     *
+     * @param emailService
+     */
+    public constructor (
+        emailService: EmailService
+    ) {
+        this._emailService = emailService;
+    }
+
+    public async sendAuthenticationCode (
         lang: Language,
         email: string,
         code: string
@@ -49,7 +61,7 @@ export class EmailAuthMessageService {
         const contentText: string = translations[T_M_AUTH_CODE_HEADER_TEXT] + translations[T_M_AUTH_CODE_BODY_TEXT] + translations[T_M_AUTH_CODE_FOOTER_TEXT];
         const contentHtml: string = translations[T_M_AUTH_CODE_HEADER_HTML] + translations[T_M_AUTH_CODE_BODY_HTML] + translations[T_M_AUTH_CODE_FOOTER_HTML];
 
-        await EmailService.sendEmailMessage(
+        await this._emailService.sendEmailMessage(
             {
                 to: email,
                 subject,

@@ -12,15 +12,12 @@ const LOG = LogService.createLogger('BackendTranslationService');
 
 export class BackendTranslationService {
 
-    public static initialize (
+    public static async initialize (
         defaultLanguage : Language,
         resources       : TranslationResourceObject
     ) : Promise<void> {
-
         const languageResources : Resource = TranslationUtils.getConfig(resources);
-
-        return new Promise((resolve, reject) => {
-
+        return await new Promise((resolve, reject) => {
             i18nInit(
                 {
                     resources: languageResources,
@@ -35,9 +32,7 @@ export class BackendTranslationService {
                 LOG.error(`Error in init: `, err);
                 reject(err);
             });
-
         });
-
     }
 
     public static async translateKeys (

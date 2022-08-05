@@ -10,14 +10,20 @@ const LOG = LogService.createLogger('JwtService');
 
 export class JwtService {
 
-    private static _defaultAlgorithm: string = 'HS256';
+    private _defaultAlgorithm: string;
 
-    public static getDefaultAlgorithm (): string {
-        return JwtService._defaultAlgorithm;
+    public constructor (
+        defaultAlgorithm: string = 'HS256'
+    ) {
+        this._defaultAlgorithm = defaultAlgorithm;
     }
 
-    public static setDefaultAlgorithm (value: string) {
-        JwtService._defaultAlgorithm = value;
+    public getDefaultAlgorithm (): string {
+        return this._defaultAlgorithm;
+    }
+
+    public setDefaultAlgorithm (value: string) {
+        this._defaultAlgorithm = value;
     }
 
     public static decodePayload (token: string) : ReadonlyJsonObject {
@@ -55,14 +61,20 @@ export class JwtService {
         return verified;
     }
 
-    public static createJwtEngine (
+    /**
+     * Creates a jwt engine which hides secret
+     *
+     * @param secret
+     * @param defaultAlgorithm
+     */
+    public createJwtEngine (
         secret: string,
         defaultAlgorithm ?: string
     ): JwtEngine {
         let _defaultAlgorithm: string | undefined = defaultAlgorithm;
         return {
             getDefaultAlgorithm: (): string => {
-                return _defaultAlgorithm ?? JwtService.getDefaultAlgorithm();
+                return _defaultAlgorithm ?? this.getDefaultAlgorithm();
             },
             setDefaultAlgorithm: (value: string): void => {
                 _defaultAlgorithm = value;
@@ -73,14 +85,14 @@ export class JwtService {
             ): string => {
                 return jwsSign(
                     {
-                        header: {alg: (alg ?? JwtService.getDefaultAlgorithm()) as unknown as Algorithm},
+                        header: {alg: (alg ?? this.getDefaultAlgorithm()) as unknown as Algorithm},
                         payload: payload,
                         secret: secret
                     }
                 );
             },
             verify: (token: string, alg?: string): boolean => {
-                return jwsVerify(token, (alg ?? _defaultAlgorithm ?? JwtService.getDefaultAlgorithm()) as unknown as Algorithm, secret);
+                return jwsVerify(token, (alg ?? _defaultAlgorithm ?? this.getDefaultAlgorithm()) as unknown as Algorithm, secret);
             }
         };
     }

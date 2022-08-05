@@ -14,6 +14,7 @@ import { isString } from "../core/modules/lodash";
 import { isVerifyEmailTokenDTO } from "../core/auth/email/types/VerifyEmailTokenDTO";
 import { isVerifyEmailCodeDTO } from "../core/auth/email/types/VerifyEmailCodeDTO";
 import { EmailTokenDTO } from "../core/auth/email/types/EmailTokenDTO";
+import { JwtService } from "./JwtService";
 
 const LOG = LogService.createLogger('EmailAuthController');
 
@@ -29,13 +30,28 @@ const LOG = LogService.createLogger('EmailAuthController');
  */
 export class EmailAuthController {
 
-    private static _defaultLanguage: Language = Language.ENGLISH;
+    private _defaultLanguage   : Language;
+    private _emailTokenService : EmailTokenService;
+    private _emailVerificationService : EmailVerificationService;
+    private _emailAuthMessageService : EmailAuthMessageService;
+
+    constructor (
+        defaultLanguage: Language = Language.ENGLISH,
+        emailTokenService: EmailTokenService,
+        emailVerificationService: EmailVerificationService,
+        emailAuthMessageService: EmailAuthMessageService
+    ) {
+        this._defaultLanguage = defaultLanguage;
+        this._emailTokenService = emailTokenService;
+        this._emailVerificationService = emailVerificationService;
+        this._emailAuthMessageService = emailAuthMessageService;
+    }
 
     /**
      * Set default language for messages sent to the user by email.
      * @param value
      */
-    public static setDefaultLanguage (value: Language) {
+    public setDefaultLanguage (value: Language) {
         this._defaultLanguage = value;
     }
 
@@ -48,7 +64,7 @@ export class EmailAuthController {
      * @param body {AuthenticateEmailDTO}
      * @param langString {Language} The optional language of the message
      */
-    public static async authenticateEmail (
+    public async authenticateEmail (
         body: ReadonlyJsonAny,
         langString: string = ""
     ): Promise<ResponseEntity<EmailTokenDTO | ErrorDTO>> {
@@ -71,11 +87,11 @@ export class EmailAuthController {
                 ).status(400);
             }
 
-            const code: string = EmailVerificationService.createVerificationCode(email);
-            const emailToken: EmailTokenDTO = EmailTokenService.createUnverifiedEmailToken(email);
+            const code: string = this._emailVerificationService.createVerificationCode(email);
+            const emailToken: EmailTokenDTO = this._emailTokenService.createUnverifiedEmailToken(email);
 
             try {
-                await EmailAuthMessageService.sendAuthenticationCode(lang, email, code);
+                await this._emailAuthMessageService.sendAuthenticationCode(lang, email, code);
             } catch (err) {
                 LOG.error(`authenticateEmail: Could not send email: `, err);
                 return ResponseEntity.internalServerError<ErrorDTO>().body(
@@ -100,7 +116,7 @@ export class EmailAuthController {
      *
      * @param body {VerifyEmailCodeDTO}
      */
-    public static async verifyEmailCode (
+    public async verifyEmailCode (
         body: ReadonlyJsonAny
     ): Promise<ResponseEntity<EmailTokenDTO | ErrorDTO>> {
 
@@ -119,21 +135,21 @@ export class EmailAuthController {
             const email: string = tokenDto?.email;
             const code: string = body?.code;
 
-            if ( !(email && code && EmailVerificationService.verifyCode(email, code)) ) {
+            if ( !(email && code && this._emailVerificationService.verifyCode(email, code)) ) {
                 LOG.info(`Access denied for "${email}" since code is not correct`);
                 return ResponseEntity.internalServerError<ErrorDTO>().body(
                     createErrorDTO('Access denied', 403)
                 ).status(403);
             }
 
-            if ( !(token && email && EmailTokenService.verifyToken(email, token, false)) ) {
+            if ( !(token && email && this._emailTokenService.verifyToken(email, token, false)) ) {
                 LOG.info(`Access denied for "${email}" since token is not valid`);
                 return ResponseEntity.internalServerError<ErrorDTO>().body(
                     createErrorDTO('Access denied', 403)
                 ).status(403);
             }
 
-            const emailToken: EmailTokenDTO = EmailTokenService.createVerifiedEmailToken(email);
+            const emailToken: EmailTokenDTO = this._emailTokenService.createVerifiedEmailToken(email);
             LOG.debug('verifyEmailCode: emailToken = ', emailToken);
             return ResponseEntity.ok<EmailTokenDTO>(emailToken);
 
@@ -152,7 +168,7 @@ export class EmailAuthController {
      *
      * @param body {VerifyEmailTokenDTO}
      */
-    public static async verifyEmailToken (
+    public async verifyEmailToken (
         body: ReadonlyJsonAny
     ): Promise<ResponseEntity<EmailTokenDTO | ErrorDTO>> {
 
@@ -168,13 +184,13 @@ export class EmailAuthController {
             const token: string = body?.token?.token ?? '';
             const email: string = body?.token?.email ?? '';
 
-            if ( !(token && email && EmailTokenService.verifyToken(email, token, true)) ) {
+            if ( !(token && email && this._emailTokenService.verifyToken(email, token, true)) ) {
                 return ResponseEntity.badRequest<ErrorDTO>().body(
                     createErrorDTO('Access denied', 403)
                 ).status(403);
             }
 
-            const emailToken: EmailTokenDTO = EmailTokenService.createVerifiedEmailToken(email);
+            const emailToken: EmailTokenDTO = this._emailTokenService.createVerifiedEmailToken(email);
 
             return ResponseEntity.ok<EmailTokenDTO>(emailToken);
 
@@ -190,17 +206,19 @@ export class EmailAuthController {
     /**
      * Can be used internally in APIs to validate and return the subject of this token.
      */
-    public static async verifyTokenAndReturnSubject (
+    public async verifyTokenAndReturnSubject (
         token: string
     ): Promise<string> {
         LOG.debug('verifyTokenAndReturnSubject: token = ', token);
-        if ( !isString(token) ) throw new TypeError('Argument must be string');
-        if ( !EmailTokenService.isTokenValid(token) ) {
-            throw new TypeError('Token was invalid: ' + token);
+        if ( !isString(token) ) {
+            throw new TypeError('EmailAuthController.verifyTokenAndReturnSubject: Argument must be string');
         }
-        const subject : string | undefined = EmailTokenService.getTokenSubject(token);
+        if ( !this._emailTokenService.isTokenValid(token) ) {
+            throw new TypeError('EmailAuthController.verifyTokenAndReturnSubject: Token was invalid: ' + token);
+        }
+        const subject : string = JwtService.decodePayloadSubject(token);
         if (!subject) {
-            throw new TypeError('Token was not verified: ' + token);
+            throw new TypeError(`EmailAuthController.verifyTokenAndReturnSubject: Token was not verified: ${token}`);
         }
         return subject;
     }
