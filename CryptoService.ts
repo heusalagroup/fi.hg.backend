@@ -15,13 +15,10 @@ export class CryptoService {
     public static createRandomInteger (
         size: number
     ) : number {
-
         if (size <= 0) {
             throw new TypeError(`CryptoService.createRandomNumberString: size must be over 0: ${size} provided`);
         }
-
         return randomInt(0, Math.pow(10, size)-1 );
-
     }
 
     /**
