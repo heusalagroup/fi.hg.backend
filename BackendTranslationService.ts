@@ -5,8 +5,8 @@ import { Language } from "../core/types/Language";
 import { ReadonlyJsonObject } from "../core/Json";
 import { LogService } from "../core/LogService";
 import { TranslationResourceObject } from "../core/types/TranslationResourceObject";
-import { TranslationUtils } from "../core/utils/TranslationUtils";
 import { TranslatedObject } from "../core/types/TranslatedObject";
+import { TranslationUtils } from "../core/TranslationUtils";
 
 const LOG = LogService.createLogger('BackendTranslationService');
 
