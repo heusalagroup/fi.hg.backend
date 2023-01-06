@@ -5,9 +5,9 @@ import { EmailTokenDTO } from "../core/auth/email/types/EmailTokenDTO";
 import { LogService } from "../core/LogService";
 import { JwtEngine } from "./JwtEngine";
 import { JwtService } from "./JwtService";
-import { isString } from "../core/modules/lodash";
 import { LogLevel } from "../core/types/LogLevel";
 import { JwtUtils } from "./JwtUtils";
+import { isString } from "../core/types/String";
 
 const UNVERIFIED_JWT_TOKEN_EXPIRATION_MINUTES = 5;
 const VERIFIED_JWT_TOKEN_EXPIRATION_DAYS = 365;

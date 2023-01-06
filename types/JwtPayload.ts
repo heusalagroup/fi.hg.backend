@@ -1,6 +1,9 @@
 // Copyright (c) 2022. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
 
-import { hasNoOtherKeys, isNumberOrUndefined, isRegularObject, isStringOrUndefined } from "../../core/modules/lodash";
+import { isStringOrUndefined } from "../../core/types/String";
+import { isNumberOrUndefined } from "../../core/types/Number";
+import { isRegularObject } from "../../core/types/RegularObject";
+import { hasNoOtherKeys } from "../../core/types/OtherKeys";
 
 export interface JwtPayload {
 

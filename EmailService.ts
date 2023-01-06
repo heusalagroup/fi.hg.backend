@@ -1,8 +1,10 @@
 // Copyright (c) 2021-2022. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
 
 import { createTransport } from 'nodemailer';
-import { isArray, trim, uniq } from "../core/modules/lodash";
+import { uniq } from "../core/functions/uniq";
+import { trim } from "../core/functions/trim";
 import { LogService } from "../core/LogService";
+import { isArray } from "../core/types/Array";
 
 const LOG = LogService.createLogger('EmailService');
 
@@ -89,7 +91,7 @@ export class EmailService {
     public async sendEmailMessage (message: EmailMessage) {
 
         const to : string[] | string = message?.to;
-        const cc : string[] | string = message?.cc;
+        const cc : string[] | string = message?.cc ?? [];
 
         const toList : string[] = isArray(to) ? to : [to];
         const ccList : string[] = isArray(cc) ? cc : [cc];
@@ -99,7 +101,8 @@ export class EmailService {
             ...ccList
         ]);
 
-        const from    : string = message?.from ?? this._from;
+        const from    : string = message?.from ?? this._from ?? '';
+        if (!from) throw new TypeError('"from" must be defined');
         const recipientString : string = recipientList.join(', ');
         const subject : string = message?.subject ?? '';
 

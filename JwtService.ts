@@ -3,8 +3,9 @@
 import { Algorithm, decode as jwsDecode, sign as jwsSign, verify as jwsVerify } from "jws";
 import { JwtEngine } from "./JwtEngine";
 import { ReadonlyJsonObject } from "../core/Json";
-import { isBoolean, isString } from "../core/modules/lodash";
+import { isBoolean } from "../core/types/Boolean";
 import { LogService } from "../core/LogService";
+import { isString } from "../core/types/String";
 
 const LOG = LogService.createLogger('JwtService');
 

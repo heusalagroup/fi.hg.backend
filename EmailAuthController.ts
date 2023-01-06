@@ -10,11 +10,11 @@ import { EmailVerificationService } from "./EmailVerificationService";
 import { EmailTokenService } from "./EmailTokenService";
 import { LogService } from "../core/LogService";
 import { EmailAuthMessageService } from "./EmailAuthMessageService";
-import { isString } from "../core/modules/lodash";
 import { isVerifyEmailTokenDTO } from "../core/auth/email/types/VerifyEmailTokenDTO";
 import { isVerifyEmailCodeDTO } from "../core/auth/email/types/VerifyEmailCodeDTO";
 import { EmailTokenDTO } from "../core/auth/email/types/EmailTokenDTO";
 import { JwtService } from "./JwtService";
+import { isString } from "../core/types/String";
 
 const LOG = LogService.createLogger('EmailAuthController');
 
