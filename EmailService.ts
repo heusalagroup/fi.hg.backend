@@ -5,6 +5,7 @@ import { uniq } from "../core/functions/uniq";
 import { trim } from "../core/functions/trim";
 import { LogService } from "../core/LogService";
 import { isArray } from "../core/types/Array";
+import { LogLevel } from "../core/types/LogLevel";
 
 const LOG = LogService.createLogger('EmailService');
 
@@ -18,6 +19,10 @@ export interface EmailMessage {
 }
 
 export class EmailService {
+
+    public static setLogLevel (level: LogLevel) {
+        LOG.setLogLevel(level);
+    }
 
     private _from        : string | undefined;
     private _transporter : any | undefined;

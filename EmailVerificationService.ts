@@ -6,6 +6,7 @@ import { forEach } from "../core/functions/forEach";
 import { remove } from "../core/functions/remove";
 import { LogService } from "../core/LogService";
 import { clearTimeout } from "timers";
+import { LogLevel } from "../core/types/LogLevel";
 
 const DEFAULT_VERIFICATION_TIMEOUT : number = 5*60*1000;
 
@@ -18,6 +19,10 @@ interface InternalEmailCode {
 const LOG = LogService.createLogger('EmailVerificationService');
 
 export class EmailVerificationService {
+
+    public static setLogLevel (level: LogLevel) {
+        LOG.setLogLevel(level);
+    }
 
     private _codes : InternalEmailCode[];
     private readonly _verificationTimeout : number;

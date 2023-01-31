@@ -15,6 +15,7 @@ import { isVerifyEmailCodeDTO } from "../core/auth/email/types/VerifyEmailCodeDT
 import { EmailTokenDTO } from "../core/auth/email/types/EmailTokenDTO";
 import { JwtService } from "./JwtService";
 import { isString } from "../core/types/String";
+import { LogLevel } from "../core/types/LogLevel";
 
 const LOG = LogService.createLogger('EmailAuthController');
 
@@ -29,6 +30,10 @@ const LOG = LogService.createLogger('EmailAuthController');
  * The .verifyTokenAndReturnSubject(token) can be used to validate internally API calls in your own APIs.
  */
 export class EmailAuthController {
+
+    public static setLogLevel (level: LogLevel) {
+        LOG.setLogLevel(level);
+    }
 
     private _defaultLanguage   : Language;
     private _emailTokenService : EmailTokenService;

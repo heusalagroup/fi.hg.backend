@@ -6,10 +6,15 @@ import { ReadonlyJsonObject } from "../core/Json";
 import { isBoolean } from "../core/types/Boolean";
 import { LogService } from "../core/LogService";
 import { isString } from "../core/types/String";
+import { LogLevel } from "../core/types/LogLevel";
 
 const LOG = LogService.createLogger('JwtService');
 
 export class JwtService {
+
+    public static setLogLevel (level: LogLevel) {
+        LOG.setLogLevel(level);
+    }
 
     private _defaultAlgorithm: string;
 

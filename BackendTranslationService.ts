@@ -7,10 +7,15 @@ import { LogService } from "../core/LogService";
 import { TranslationResourceObject } from "../core/types/TranslationResourceObject";
 import { TranslatedObject } from "../core/types/TranslatedObject";
 import { TranslationUtils } from "../core/TranslationUtils";
+import { LogLevel } from "../core/types/LogLevel";
 
 const LOG = LogService.createLogger('BackendTranslationService');
 
 export class BackendTranslationService {
+
+    public static setLogLevel (level: LogLevel) {
+        LOG.setLogLevel(level);
+    }
 
     public static async initialize (
         defaultLanguage : Language,

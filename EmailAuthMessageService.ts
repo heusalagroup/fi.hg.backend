@@ -16,10 +16,15 @@ import {
     EmailService
 } from "./EmailService";
 import { LogService } from "../core/LogService";
+import { LogLevel } from "../core/types/LogLevel";
 
 const LOG = LogService.createLogger('EmailAuthMessageService');
 
 export class EmailAuthMessageService {
+
+    public static setLogLevel (level: LogLevel) {
+        LOG.setLogLevel(level);
+    }
 
     private readonly _emailService : EmailService;
 
