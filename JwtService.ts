@@ -2,7 +2,7 @@
 
 import { Algorithm, decode as jwsDecode, sign as jwsSign, verify as jwsVerify } from "jws";
 import { JwtEngine } from "./JwtEngine";
-import { ReadonlyJsonObject } from "../core/Json";
+import { isReadonlyJsonAny, ReadonlyJsonObject } from "../core/Json";
 import { isBoolean } from "../core/types/Boolean";
 import { LogService } from "../core/LogService";
 import { isString } from "../core/types/String";
@@ -34,7 +34,8 @@ export class JwtService {
 
     public static decodePayload (token: string) : ReadonlyJsonObject {
         const decoded = jwsDecode(token);
-        return JSON.parse(decoded?.payload);
+        LOG.debug(`decodePayload: Parsing decoded = `, decoded);
+        return isReadonlyJsonAny(decoded) ? decoded : JSON.parse(decoded?.payload);
     }
 
     public static decodePayloadAudience (token: string) : string {
