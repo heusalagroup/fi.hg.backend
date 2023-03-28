@@ -1,8 +1,8 @@
-// Copyright (c) 2021-2022. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
+// Copyright (c) 2023. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
 
 import { Algorithm, decode as jwsDecode, sign as jwsSign, verify as jwsVerify } from "jws";
 import { JwtEngine } from "./JwtEngine";
-import { isReadonlyJsonAny, ReadonlyJsonObject } from "../core/Json";
+import { isReadonlyJsonObject, ReadonlyJsonObject} from "../core/Json";
 import { isBoolean } from "../core/types/Boolean";
 import { LogService } from "../core/LogService";
 import { isString } from "../core/types/String";
@@ -35,7 +35,7 @@ export class JwtService {
     public static decodePayload (token: string) : ReadonlyJsonObject {
         const decoded = jwsDecode(token);
         LOG.debug(`decodePayload: Parsing decoded = `, decoded);
-        return isReadonlyJsonAny(decoded) ? decoded : JSON.parse(decoded?.payload);
+        return isReadonlyJsonObject(decoded) ? JSON.parse(decoded?.payload.toString()) : JSON.parse(decoded?.payload);
     }
 
     public static decodePayloadAudience (token: string) : string {
