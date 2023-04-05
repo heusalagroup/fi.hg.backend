@@ -113,6 +113,7 @@ export class EmailTokenService {
             }
 
             const payload = JwtService.decodePayload(token);
+            LOG.debug(`payload : ${typeof payload} = `, payload);
 
             if ( requireVerifiedToken ) {
 
