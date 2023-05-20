@@ -2,7 +2,7 @@
 //
 
 import { ReadonlyJsonAny } from "../core/Json";
-import { ResponseEntity } from "../core/request/ResponseEntity";
+import { ResponseEntity } from "../core/request/types/ResponseEntity";
 import { createErrorDTO, ErrorDTO } from "../core/types/ErrorDTO";
 import { Language, parseLanguage } from "../core/types/Language";
 import { isAuthenticateEmailDTO } from "../core/auth/email/types/AuthenticateEmailDTO";
