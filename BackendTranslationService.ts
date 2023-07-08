@@ -8,6 +8,7 @@ import { TranslationResourceObject } from "../core/types/TranslationResourceObje
 import { TranslatedObject } from "../core/types/TranslatedObject";
 import { TranslationUtils } from "../core/TranslationUtils";
 import { LogLevel } from "../core/types/LogLevel";
+import { TranslationFunction } from "../core/types/TranslationFunction";
 
 const LOG = LogService.createLogger('BackendTranslationService');
 
@@ -45,8 +46,16 @@ export class BackendTranslationService {
         keys              : string[],
         translationParams : ReadonlyJsonObject
     ): Promise<TranslatedObject> {
-        const t: TFunction = await changeLanguage(lang);
+        const t: TranslationFunction = await changeLanguage(lang);
         return TranslationUtils.translateKeys(t, keys, translationParams);
+    }
+
+    public static async translateJob<T> (
+        lang     : Language,
+        callback : ((t: TranslationFunction) => T)
+    ) : Promise<T> {
+        const t: TranslationFunction = await changeLanguage(lang);
+        return callback(t);
     }
 
 }
