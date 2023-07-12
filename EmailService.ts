@@ -6,6 +6,8 @@ import { trim } from "../core/functions/trim";
 import { LogService } from "../core/LogService";
 import { isArray } from "../core/types/Array";
 import { LogLevel } from "../core/types/LogLevel";
+import { parseBoolean } from "../core/types/Boolean";
+import { parseNonEmptyString } from "../core/types/String";
 
 const LOG = LogService.createLogger('EmailService');
 
@@ -61,35 +63,50 @@ export class EmailService {
 
         const u = new URL(config);
 
+        function parseBooleanParam (u: URL, key: string) : boolean | undefined {
+            return u?.searchParams?.has(key) ? parseBoolean( u?.searchParams?.get(key) ) : undefined;
+        }
+
+        function parseNonEmptyStringParam (u: URL, key: string) : string | undefined {
+            return u?.searchParams?.has(key) ? parseNonEmptyString( u?.searchParams?.get(key) ) : undefined;
+        }
+
         const username : string | undefined = u?.username || undefined;
         const password : string | undefined = u?.password || undefined;
         const hostname : string  = u?.hostname || 'localhost';
         const port     : number  = parseInt(u?.port || '25', 10);
-        const secure   : boolean = u?.searchParams?.has('secure') ?? false;
+        const secure   : boolean = parseBooleanParam(u, 'secure');
+        const ignoreTLS : boolean = parseBooleanParam(u, 'ignore-tls');
+        const requireTLS : boolean = parseBooleanParam(u, 'require-tls');
+        const tlsServerName : string | undefined = parseNonEmptyStringParam(u, 'tls-server-name');
+        const tlsRejectUnauthorized : boolean | undefined = parseBooleanParam(u, 'tls-server-name');
 
-        if ( username && password ) {
+        LOG.debug(`Config "${config}" parsed as ${hostname}:${port} ${
+            username && password ? `with '${username}':'${password}'` : `without auth`
+        } with secure=${secure}, ignoreTLS=${ignoreTLS}, requireTLS=${requireTLS}, tlsServerName='${tlsServerName}', tlsRejectUnauthorized=${tlsRejectUnauthorized}`)
 
-            LOG.debug(`Config "${config}" parsed as ${hostname}:${port} with ${username}:${password} with secure as ${secure}`)
-            this._transporter = createTransport({
-                host: hostname,
-                port: port,
-                secure: secure,
-                auth: {
-                    user: decodeURIComponent(username),
-                    pass: decodeURIComponent(password)
+        this._transporter = createTransport({
+            host: hostname,
+            port: port,
+            ...( secure !== undefined ? { secure } : {}),
+            ...( ignoreTLS !== undefined ? { ignoreTLS } : {}),
+            ...( requireTLS !== undefined ? { requireTLS } : {}),
+            ...( tlsServerName !== undefined || tlsRejectUnauthorized !== undefined ? {
+                tls: {
+                    ...(tlsServerName !== undefined ? {servername: tlsServerName} : {}),
+                    ...(tlsRejectUnauthorized !== undefined ? {rejectUnauthorized: tlsRejectUnauthorized} : {}),
                 }
-            });
-
-        } else {
-
-            LOG.debug(`Config "${config}" parsed as ${hostname}:${port} without auth with secure as ${secure}`)
-            this._transporter = createTransport({
-                host: hostname,
-                port: port,
-                secure: secure
-            });
-
-        }
+            } : {}),
+            ...(
+                username !== undefined && password !== undefined
+                ? {
+                        auth: {
+                            user: decodeURIComponent(username),
+                            pass: decodeURIComponent(password)
+                        }
+                } : {}
+            ),
+        });
 
     }
 
