@@ -98,7 +98,7 @@ export class EmailAuthController {
             try {
                 await this._emailAuthMessageService.sendAuthenticationCode(lang, email, code);
             } catch (err) {
-                LOG.error(`authenticateEmail: Could not send email: `, err);
+                LOG.error(`authenticateEmail: Could not send email to '${email}': `, err);
                 return ResponseEntity.internalServerError<ErrorDTO>().body(
                     createErrorDTO('Internal error', 500)
                 ).status(500);
