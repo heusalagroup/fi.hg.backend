@@ -75,9 +75,9 @@ export class EmailService {
         const password : string | undefined = u?.password || undefined;
         const hostname : string  = u?.hostname || 'localhost';
         const port     : number  = parseInt(u?.port || '25', 10);
-        const secure   : boolean = parseBooleanParam(u, 'secure');
-        const ignoreTLS : boolean = parseBooleanParam(u, 'ignore-tls');
-        const requireTLS : boolean = parseBooleanParam(u, 'require-tls');
+        const secure   : boolean | undefined = parseBooleanParam(u, 'secure');
+        const ignoreTLS : boolean | undefined = parseBooleanParam(u, 'ignore-tls');
+        const requireTLS : boolean | undefined = parseBooleanParam(u, 'require-tls');
         const tlsServerName : string | undefined = parseNonEmptyStringParam(u, 'tls-server-name');
         const tlsRejectUnauthorized : boolean | undefined = parseBooleanParam(u, 'tls-server-name');
 
