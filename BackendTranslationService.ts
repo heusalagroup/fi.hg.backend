@@ -46,16 +46,16 @@ export class BackendTranslationService {
         keys              : string[],
         translationParams : ReadonlyJsonObject
     ): Promise<TranslatedObject> {
-        const t: TranslationFunction = await changeLanguage(lang);
-        return TranslationUtils.translateKeys(t, keys, translationParams);
+        const t = await changeLanguage(lang);
+        return TranslationUtils.translateKeys(t as TranslationFunction, keys, translationParams);
     }
 
     public static async translateJob<T> (
         lang     : Language,
         callback : ((t: TranslationFunction) => T)
     ) : Promise<T> {
-        const t: TranslationFunction = await changeLanguage(lang);
-        return callback(t);
+        const t = await changeLanguage(lang);
+        return callback(t as TranslationFunction);
     }
 
 }
