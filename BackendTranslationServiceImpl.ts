@@ -1,6 +1,6 @@
-// Copyright (c) 2021-2022. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
+// Copyright (c) 2021-2023. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
 
-import { init as i18nInit, changeLanguage, Resource, TFunction } from "i18next";
+import { init as i18nInit, changeLanguage, Resource } from "i18next";
 import { Language } from "../core/types/Language";
 import { ReadonlyJsonObject } from "../core/Json";
 import { LogService } from "../core/LogService";
@@ -9,10 +9,15 @@ import { TranslatedObject } from "../core/types/TranslatedObject";
 import { TranslationUtils } from "../core/TranslationUtils";
 import { LogLevel } from "../core/types/LogLevel";
 import { TranslationFunction } from "../core/types/TranslationFunction";
+import { TranslationService } from "../core/i18n/TranslationService";
 
 const LOG = LogService.createLogger('BackendTranslationService');
 
-export class BackendTranslationService {
+export class BackendTranslationServiceImpl implements TranslationService {
+
+    public static create () : TranslationService {
+        return BackendTranslationServiceImpl;
+    }
 
     public static setLogLevel (level: LogLevel) {
         LOG.setLogLevel(level);
@@ -56,6 +61,22 @@ export class BackendTranslationService {
     ) : Promise<T> {
         const t = await changeLanguage(lang);
         return callback(t as TranslationFunction);
+    }
+
+    public async initialize (defaultLanguage: Language, resources: TranslationResourceObject): Promise<void> {
+        return await BackendTranslationServiceImpl.initialize(defaultLanguage, resources);
+    }
+
+    public setLogLevel (level: LogLevel): void {
+        BackendTranslationServiceImpl.setLogLevel(level);
+    }
+
+    public async translateJob<T> (lang: Language, callback: (t: TranslationFunction) => T): Promise<T> {
+        return await BackendTranslationServiceImpl.translateJob<T>(lang, callback);
+    }
+
+    public async translateKeys (lang: Language, keys: string[], translationParams: ReadonlyJsonObject): Promise<TranslatedObject> {
+        return await BackendTranslationServiceImpl.translateKeys(lang, keys, translationParams);
     }
 
 }

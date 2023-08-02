@@ -1,7 +1,8 @@
-// Copyright (c) 2022. <info@heusalagroup.fi>. All rights reserved.
+// Copyright (c) 2022-2023. <info@heusalagroup.fi>. All rights reserved.
 
+import { EmailMessage } from "../core/email/types/EmailMessage";
 import { Language } from "../core/types/Language";
-import { BackendTranslationService } from "./BackendTranslationService";
+import { TranslationService } from "../core/i18n/TranslationService";
 import {
     T_M_AUTH_CODE_BODY_HTML,
     T_M_AUTH_CODE_BODY_TEXT,
@@ -11,31 +12,43 @@ import {
     T_M_AUTH_CODE_HEADER_TEXT,
     T_M_AUTH_CODE_SUBJECT
 } from "../core/auth/email/translation";
-import {
-    EmailMessage,
-    EmailService
-} from "./EmailService";
+import { BackendTranslationServiceImpl } from "./BackendTranslationServiceImpl";
+import { EmailAuthMessageService } from "../core/auth/EmailAuthMessageService";
 import { LogService } from "../core/LogService";
 import { LogLevel } from "../core/types/LogLevel";
+import { EmailService } from "../core/email/EmailService";
 
-const LOG = LogService.createLogger('EmailAuthMessageService');
+const LOG = LogService.createLogger('EmailAuthMessageServiceImpl');
 
-export class EmailAuthMessageService {
+export class EmailAuthMessageServiceImpl implements EmailAuthMessageService {
 
     public static setLogLevel (level: LogLevel) {
         LOG.setLogLevel(level);
     }
 
     private readonly _emailService : EmailService;
+    private readonly _backendTranslationService : TranslationService;
 
     /**
      *
      * @param emailService
      */
-    public constructor (
-        emailService: EmailService
+    protected constructor (
+        emailService: EmailService,
+        backendTranslationService: TranslationService,
     ) {
         this._emailService = emailService;
+        this._backendTranslationService = backendTranslationService;
+    }
+
+    public static create (
+        emailService: EmailService,
+        backendTranslationService : TranslationService = BackendTranslationServiceImpl,
+    ) {
+        return new EmailAuthMessageServiceImpl(
+            emailService,
+            backendTranslationService,
+        );
     }
 
     public async sendAuthenticationCode (
@@ -48,7 +61,7 @@ export class EmailAuthMessageService {
             CODE: code
         };
 
-        const translations = await BackendTranslationService.translateKeys(
+        const translations = await this._backendTranslationService.translateKeys(
             lang,
             [
                 T_M_AUTH_CODE_SUBJECT,

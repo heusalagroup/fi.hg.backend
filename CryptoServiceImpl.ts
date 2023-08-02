@@ -1,8 +1,13 @@
-// Copyright (c) 2021-2022. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
+// Copyright (c) 2021-2023. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
 
 import { randomInt } from "crypto";
+import { CryptoService } from "../core/crypto/CryptoService";
 
-export class CryptoService {
+export class CryptoServiceImpl implements CryptoService {
+
+    public static create () : CryptoService {
+        return CryptoServiceImpl;
+    }
 
     /**
      * Creates random string containing numbers between 0 and 9.
@@ -32,7 +37,21 @@ export class CryptoService {
     public static createRandomIntegerString (
         size: number
     ) : string {
-        return `${CryptoService.createRandomInteger(size)}`.padStart(size, "0");
+        return `${CryptoServiceImpl.createRandomInteger(size)}`.padStart(size, "0");
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public createRandomInteger (size: number): number {
+        return CryptoServiceImpl.createRandomInteger(size);
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public createRandomIntegerString (size: number): string {
+        return CryptoServiceImpl.createRandomIntegerString(size);
     }
 
 }

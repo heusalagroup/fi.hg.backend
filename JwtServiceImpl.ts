@@ -1,35 +1,23 @@
-// Copyright (c) 2021-2022. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
+// Copyright (c) 2021-2023. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
 
 import { Algorithm, decode as jwsDecode, sign as jwsSign, verify as jwsVerify } from "jws";
-import { JwtEngine } from "./JwtEngine";
-import { isReadonlyJsonAny, isReadonlyJsonObject, ReadonlyJsonObject } from "../core/Json";
+import { JwtEngine } from "../core/jwt/JwtEngine";
+import { isReadonlyJsonObject, ReadonlyJsonObject } from "../core/Json";
 import { isBoolean } from "../core/types/Boolean";
 import { LogService } from "../core/LogService";
 import { isString } from "../core/types/String";
 import { LogLevel } from "../core/types/LogLevel";
+import { JwtService } from "../core/jwt/JwtService";
 
-const LOG = LogService.createLogger('JwtService');
+const LOG = LogService.createLogger('JwtServiceImpl');
 
-export class JwtService {
+/**
+ * Jwt service implemented using "jws" NPM module.
+ */
+export class JwtServiceImpl implements JwtService {
 
     public static setLogLevel (level: LogLevel) {
         LOG.setLogLevel(level);
-    }
-
-    private _defaultAlgorithm: string;
-
-    public constructor (
-        defaultAlgorithm: string = 'HS256'
-    ) {
-        this._defaultAlgorithm = defaultAlgorithm;
-    }
-
-    public getDefaultAlgorithm (): string {
-        return this._defaultAlgorithm;
-    }
-
-    public setDefaultAlgorithm (value: string) {
-        this._defaultAlgorithm = value;
     }
 
     public static decodePayload (token: string) : ReadonlyJsonObject {
@@ -40,7 +28,7 @@ export class JwtService {
     }
 
     public static decodePayloadAudience (token: string) : string {
-        const payload = JwtService.decodePayload(token);
+        const payload = JwtServiceImpl.decodePayload(token);
         const aud = payload?.aud;
         if (!isString(aud)) {
             LOG.debug(`payload: `, payload);
@@ -50,7 +38,7 @@ export class JwtService {
     }
 
     public static decodePayloadSubject (token: string) : string {
-        const payload = JwtService.decodePayload(token);
+        const payload = JwtServiceImpl.decodePayload(token);
         const sub = payload?.sub;
         if (!isString(sub)) {
             LOG.debug(`payload: `, payload);
@@ -60,13 +48,36 @@ export class JwtService {
     }
 
     public static decodePayloadVerified (token: string) : boolean {
-        const payload = JwtService.decodePayload(token);
+        const payload = JwtServiceImpl.decodePayload(token);
         const verified = payload?.verified;
         if (!isBoolean(verified)) {
             LOG.debug(`payload: `, payload);
             throw new TypeError(`decodePayloadVerified: Payload "verified" not boolean: ` +  token);
         }
         return verified;
+    }
+
+
+    private _defaultAlgorithm: string;
+
+    protected constructor (
+        defaultAlgorithm: string = 'HS256'
+    ) {
+        this._defaultAlgorithm = defaultAlgorithm;
+    }
+
+    public static create (
+        defaultAlgorithm: string = 'HS256'
+    ) {
+        return new JwtServiceImpl(defaultAlgorithm);
+    }
+
+    public getDefaultAlgorithm (): string {
+        return this._defaultAlgorithm;
+    }
+
+    public setDefaultAlgorithm (value: string) {
+        this._defaultAlgorithm = value;
     }
 
     /**

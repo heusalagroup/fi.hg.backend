@@ -1,23 +1,22 @@
-// Copyright (c) 2022. <info@heusalagroup.fi>. All rights reserved.
-//
+// Copyright (c) 2022-2023. <info@heusalagroup.fi>. All rights reserved.
 
 import { ReadonlyJsonAny } from "../core/Json";
 import { ResponseEntity } from "../core/request/types/ResponseEntity";
 import { createErrorDTO, ErrorDTO } from "../core/types/ErrorDTO";
 import { Language, parseLanguage } from "../core/types/Language";
 import { isAuthenticateEmailDTO } from "../core/auth/email/types/AuthenticateEmailDTO";
-import { EmailVerificationService } from "./EmailVerificationService";
-import { EmailTokenService } from "./EmailTokenService";
+import { EmailAuthMessageService } from "../core/auth/EmailAuthMessageService";
+import { EmailTokenService } from "../core/auth/EmailTokenService";
+import { EmailVerificationService } from "../core/auth/EmailVerificationService";
 import { LogService } from "../core/LogService";
-import { EmailAuthMessageService } from "./EmailAuthMessageService";
 import { isVerifyEmailTokenDTO } from "../core/auth/email/types/VerifyEmailTokenDTO";
 import { isVerifyEmailCodeDTO } from "../core/auth/email/types/VerifyEmailCodeDTO";
 import { EmailTokenDTO } from "../core/auth/email/types/EmailTokenDTO";
-import { JwtService } from "./JwtService";
+import { JwtServiceImpl } from "./JwtServiceImpl";
 import { isString } from "../core/types/String";
 import { LogLevel } from "../core/types/LogLevel";
 
-const LOG = LogService.createLogger('EmailAuthController');
+const LOG = LogService.createLogger('EmailAuthControllerImpl');
 
 /**
  * This HTTP backend controller can be used to validate the ownership of user's
@@ -29,7 +28,7 @@ const LOG = LogService.createLogger('EmailAuthController');
  *
  * The .verifyTokenAndReturnSubject(token) can be used to validate internally API calls in your own APIs.
  */
-export class EmailAuthController {
+export class EmailAuthControllerImpl {
 
     public static setLogLevel (level: LogLevel) {
         LOG.setLogLevel(level);
@@ -40,16 +39,30 @@ export class EmailAuthController {
     private _emailVerificationService : EmailVerificationService;
     private _emailAuthMessageService : EmailAuthMessageService;
 
-    constructor (
+    protected constructor (
         defaultLanguage: Language = Language.ENGLISH,
         emailTokenService: EmailTokenService,
         emailVerificationService: EmailVerificationService,
-        emailAuthMessageService: EmailAuthMessageService
+        emailAuthMessageService: EmailAuthMessageService,
     ) {
         this._defaultLanguage = defaultLanguage;
         this._emailTokenService = emailTokenService;
         this._emailVerificationService = emailVerificationService;
         this._emailAuthMessageService = emailAuthMessageService;
+    }
+
+    public static create (
+        defaultLanguage: Language = Language.ENGLISH,
+        emailTokenService: EmailTokenService,
+        emailVerificationService: EmailVerificationService,
+        emailAuthMessageService: EmailAuthMessageService,
+    ) {
+        return new EmailAuthControllerImpl(
+            defaultLanguage,
+            emailTokenService,
+            emailVerificationService,
+            emailAuthMessageService
+        );
     }
 
     /**
@@ -221,7 +234,7 @@ export class EmailAuthController {
         if ( !this._emailTokenService.isTokenValid(token) ) {
             throw new TypeError('EmailAuthController.verifyTokenAndReturnSubject: Token was invalid: ' + token);
         }
-        const subject : string = JwtService.decodePayloadSubject(token);
+        const subject : string = JwtServiceImpl.decodePayloadSubject(token);
         if (!subject) {
             throw new TypeError(`EmailAuthController.verifyTokenAndReturnSubject: Token was not verified: ${token}`);
         }

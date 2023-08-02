@@ -1,20 +1,20 @@
-// Copyright (c) 2021-2022. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
+// Copyright (c) 2021-2023. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
 
-import { Algorithm } from 'jws';
 import { EmailTokenDTO } from "../core/auth/email/types/EmailTokenDTO";
 import { LogService } from "../core/LogService";
-import { JwtEngine } from "./JwtEngine";
-import { JwtService } from "./JwtService";
+import { EmailTokenService, EmailTokenServiceAlgorithm } from "../core/auth/EmailTokenService";
+import { JwtEngine } from "../core/jwt/JwtEngine";
+import { JwtServiceImpl } from "./JwtServiceImpl";
 import { LogLevel } from "../core/types/LogLevel";
-import { JwtUtils } from "./JwtUtils";
+import { JwtUtils } from "../core/jwt/JwtUtils";
 import { isString } from "../core/types/String";
 
 const UNVERIFIED_JWT_TOKEN_EXPIRATION_MINUTES = 5;
 const VERIFIED_JWT_TOKEN_EXPIRATION_DAYS = 365;
 
-const LOG = LogService.createLogger('EmailTokenService');
+const LOG = LogService.createLogger('EmailTokenServiceImpl');
 
-export class EmailTokenService {
+export class EmailTokenServiceImpl implements EmailTokenService {
 
     public static setLogLevel (level: LogLevel) {
         LOG.setLogLevel(level);
@@ -30,7 +30,7 @@ export class EmailTokenService {
      * @param unverifiedJwtTokenExpirationMinutes
      * @param verifiedJwtTokenExpirationDays
      */
-    public constructor (
+    protected constructor (
         jwtEngine: JwtEngine,
         unverifiedJwtTokenExpirationMinutes : number = UNVERIFIED_JWT_TOKEN_EXPIRATION_MINUTES,
         verifiedJwtTokenExpirationDays      : number = VERIFIED_JWT_TOKEN_EXPIRATION_DAYS
@@ -40,13 +40,25 @@ export class EmailTokenService {
         this._verifiedJwtTokenExpirationDays = verifiedJwtTokenExpirationDays;
     }
 
+    public static create (
+        jwtEngine: JwtEngine,
+        unverifiedJwtTokenExpirationMinutes : number = UNVERIFIED_JWT_TOKEN_EXPIRATION_MINUTES,
+        verifiedJwtTokenExpirationDays      : number = VERIFIED_JWT_TOKEN_EXPIRATION_DAYS
+    ) : EmailTokenServiceImpl {
+        return new EmailTokenServiceImpl(
+            jwtEngine,
+            unverifiedJwtTokenExpirationMinutes,
+            verifiedJwtTokenExpirationDays
+        );
+    }
+
     /**
      * @deprecated Use JwtService.decodePayloadAudience(token) directly
      * @param token
      */
     public static getTokenAudience (token: string): string | undefined {
         try {
-            return JwtService.decodePayloadAudience(token);
+            return JwtServiceImpl.decodePayloadAudience(token);
         } catch (err) {
             LOG.error(`getTokenAudience: Error: `, err);
             return undefined;
@@ -59,7 +71,7 @@ export class EmailTokenService {
      */
     public static getTokenSubject (token: string): string | undefined {
         try {
-            return JwtService.decodePayloadSubject(token);
+            return JwtServiceImpl.decodePayloadSubject(token);
         } catch (err) {
             LOG.error(`getTokenSubject: Error: `, err);
             return undefined;
@@ -72,7 +84,7 @@ export class EmailTokenService {
      */
     public static isTokenVerified (token: string): boolean {
         try {
-            return JwtService.decodePayloadVerified(token);
+            return JwtServiceImpl.decodePayloadVerified(token);
         } catch (err) {
             LOG.error(`getTokenSubject: Error: `, err);
             return false;
@@ -90,7 +102,7 @@ export class EmailTokenService {
         email: string,
         token: string,
         requireVerifiedToken: boolean,
-        alg                  ?: Algorithm
+        alg                  ?: EmailTokenServiceAlgorithm
     ): boolean {
 
         try {
@@ -112,7 +124,7 @@ export class EmailTokenService {
                 return false;
             }
 
-            const payload = JwtService.decodePayload(token);
+            const payload = JwtServiceImpl.decodePayload(token);
             LOG.debug(`payload : ${typeof payload} = `, payload);
 
             if ( requireVerifiedToken ) {
@@ -151,7 +163,7 @@ export class EmailTokenService {
     public verifyValidTokenForSubject (
         token: string,
         email: string,
-        alg   ?: Algorithm
+        alg   ?: EmailTokenServiceAlgorithm
     ): boolean {
         try {
             LOG.debug(`verifyValidTokenForSubject: email "${email}", "${token}"`);
@@ -171,7 +183,7 @@ export class EmailTokenService {
                 return false;
             }
 
-            const payload = JwtService.decodePayload(token);
+            const payload = JwtServiceImpl.decodePayload(token);
             if ( payload?.sub !== email ) {
                 LOG.debug(`verifyValidTokenForSubject: "sub" did not match: `, payload?.sub, email);
                 return false;
@@ -192,7 +204,7 @@ export class EmailTokenService {
      */
     public isTokenValid (
         token: string,
-        alg   ?: Algorithm
+        alg   ?: EmailTokenServiceAlgorithm
     ): boolean {
         try {
 
@@ -224,7 +236,7 @@ export class EmailTokenService {
     public verifyTokenOnly (
         token                : string,
         requireVerifiedToken : boolean,
-        alg                  ?: Algorithm
+        alg                  ?: EmailTokenServiceAlgorithm
     ): boolean {
 
         try {
@@ -241,7 +253,7 @@ export class EmailTokenService {
                 return false;
             }
 
-            const payload = JwtService.decodePayload(token);
+            const payload = JwtServiceImpl.decodePayload(token);
 
             if ( requireVerifiedToken ) {
 
@@ -272,7 +284,7 @@ export class EmailTokenService {
 
     public createUnverifiedEmailToken (
         email: string,
-        alg                  ?: Algorithm
+        alg                  ?: EmailTokenServiceAlgorithm
     ): EmailTokenDTO {
 
         try {
@@ -296,7 +308,7 @@ export class EmailTokenService {
 
     public createVerifiedEmailToken (
         email: string,
-        alg ?: Algorithm
+        alg ?: EmailTokenServiceAlgorithm
     ): EmailTokenDTO {
         try {
             const signature = this._jwtEngine.sign(

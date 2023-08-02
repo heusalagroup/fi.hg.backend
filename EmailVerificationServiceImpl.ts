@@ -8,6 +8,7 @@ import { LogService } from "../core/LogService";
 import { clearTimeout } from "timers";
 import { Disposable } from "../core/types/Disposable";
 import { LogLevel } from "../core/types/LogLevel";
+import { EmailVerificationService } from "../core/auth/EmailVerificationService";
 
 const DEFAULT_VERIFICATION_TIMEOUT : number = 5*60*1000;
 
@@ -17,9 +18,10 @@ interface InternalEmailCode {
     timer : any | undefined;
 }
 
-const LOG = LogService.createLogger('EmailVerificationService');
+const LOG = LogService.createLogger('EmailVerificationServiceImpl');
 
-export class EmailVerificationService implements Disposable {
+export class EmailVerificationServiceImpl
+    implements Disposable, EmailVerificationService {
 
     public static setLogLevel (level: LogLevel) {
         LOG.setLogLevel(level);
@@ -28,11 +30,19 @@ export class EmailVerificationService implements Disposable {
     private _codes : InternalEmailCode[];
     private readonly _verificationTimeout : number;
 
-    public constructor (
+    protected constructor (
         verificationTimeout : number = DEFAULT_VERIFICATION_TIMEOUT
     ) {
         this._codes = [];
         this._verificationTimeout = verificationTimeout;
+    }
+
+    public static create (
+        verificationTimeout : number = DEFAULT_VERIFICATION_TIMEOUT
+    ) : EmailVerificationServiceImpl {
+        return new EmailVerificationServiceImpl(
+            verificationTimeout
+        );
     }
 
     public destroy () {

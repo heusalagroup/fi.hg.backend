@@ -1,6 +1,7 @@
-// Copyright (c) 2021-2022. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
+// Copyright (c) 2021-2023. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
 
 import { createTransport } from 'nodemailer';
+import { EmailMessage } from "../core/email/types/EmailMessage";
 import { uniq } from "../core/functions/uniq";
 import { trim } from "../core/functions/trim";
 import { LogService } from "../core/LogService";
@@ -8,19 +9,14 @@ import { isArray } from "../core/types/Array";
 import { LogLevel } from "../core/types/LogLevel";
 import { parseBoolean } from "../core/types/Boolean";
 import { parseNonEmptyString } from "../core/types/String";
+import { EmailService } from "../core/email/EmailService";
 
-const LOG = LogService.createLogger('EmailService');
+const LOG = LogService.createLogger('EmailServiceImpl');
 
-export interface EmailMessage {
-    readonly from        ?: string;
-    readonly to           : string | string[];
-    readonly cc          ?: string | string[];
-    readonly subject      : string;
-    readonly content     ?: string;
-    readonly htmlContent ?: string;
-}
-
-export class EmailService {
+/**
+ * Email service implemented using "nodemailer" module.
+ */
+export class EmailServiceImpl implements EmailService {
 
     public static setLogLevel (level: LogLevel) {
         LOG.setLogLevel(level);
@@ -34,12 +30,22 @@ export class EmailService {
      * @param from
      * @param transporter
      */
-    public constructor (
+    protected constructor (
         from         : string,
         transporter ?: any | undefined
     ) {
         this._from = from;
         this._transporter = transporter;
+    }
+
+    public static create (
+        from         : string,
+        transporter ?: any | undefined
+    ) : EmailServiceImpl {
+        return new EmailServiceImpl(
+            from,
+            transporter
+        );
     }
 
     public setDefaultFrom (from: string) {
