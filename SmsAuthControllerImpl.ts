@@ -7,6 +7,7 @@ import { trim } from "../core/functions/trim";
 import { trimStart } from "../core/functions/trimStart";
 import { ReadonlyJsonAny } from "../core/Json";
 import { JwtDecodeService } from "../core/jwt/JwtDecodeService";
+import { PhoneNumberUtils } from "../core/PhoneNumberUtils";
 import { ResponseEntity } from "../core/request/types/ResponseEntity";
 import { createErrorDTO, ErrorDTO } from "../core/types/ErrorDTO";
 import { Language, parseLanguage } from "../core/types/Language";
@@ -126,7 +127,7 @@ export class SmsAuthControllerImpl implements SmsAuthController {
                     createErrorDTO(`body.sms required`, 400)
                 ).status(400);
             }
-            sms = EmailUtils.normalizeEmailAddress(sms, this._defaultPhonePrefix);
+            sms = PhoneNumberUtils.normalizePhoneAddress(sms, this._defaultPhonePrefix);
 
             const code: string = this._smsVerificationService.createVerificationCode(sms);
             const smsToken: SmsTokenDTO = this._smsTokenService.createUnverifiedSmsToken(sms);
