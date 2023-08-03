@@ -5,6 +5,9 @@ import { CryptoService } from "../core/crypto/CryptoService";
 
 export class CryptoServiceImpl implements CryptoService {
 
+    protected constructor () {
+    }
+
     public static create () : CryptoService {
         return CryptoServiceImpl;
     }

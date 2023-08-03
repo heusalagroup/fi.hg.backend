@@ -1,10 +1,11 @@
 // Copyright (c) 2021-2023. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
 
 import { EmailTokenDTO } from "../core/auth/email/types/EmailTokenDTO";
+import { JwtDecodeService } from "../core/jwt/JwtDecodeService";
 import { LogService } from "../core/LogService";
 import { EmailTokenService, EmailTokenServiceAlgorithm } from "../core/auth/EmailTokenService";
 import { JwtEngine } from "../core/jwt/JwtEngine";
-import { JwtServiceImpl } from "./JwtServiceImpl";
+import { JwtDecodeServiceImpl } from "./JwtDecodeServiceImpl";
 import { LogLevel } from "../core/types/LogLevel";
 import { JwtUtils } from "../core/jwt/JwtUtils";
 import { isString } from "../core/types/String";
@@ -21,21 +22,25 @@ export class EmailTokenServiceImpl implements EmailTokenService {
     }
 
     private readonly _jwtEngine: JwtEngine;
+    private readonly _jwtDecodeService: JwtDecodeService;
     private readonly _unverifiedJwtTokenExpirationMinutes: number;
     private readonly _verifiedJwtTokenExpirationDays: number;
 
     /**
      *
      * @param jwtEngine
+     * @param jwtDecodeService
      * @param unverifiedJwtTokenExpirationMinutes
      * @param verifiedJwtTokenExpirationDays
      */
     protected constructor (
-        jwtEngine: JwtEngine,
+        jwtEngine : JwtEngine,
+        jwtDecodeService : JwtDecodeService,
         unverifiedJwtTokenExpirationMinutes : number = UNVERIFIED_JWT_TOKEN_EXPIRATION_MINUTES,
-        verifiedJwtTokenExpirationDays      : number = VERIFIED_JWT_TOKEN_EXPIRATION_DAYS
+        verifiedJwtTokenExpirationDays      : number = VERIFIED_JWT_TOKEN_EXPIRATION_DAYS,
     ) {
         this._jwtEngine = jwtEngine;
+        this._jwtDecodeService = jwtDecodeService;
         this._unverifiedJwtTokenExpirationMinutes = unverifiedJwtTokenExpirationMinutes;
         this._verifiedJwtTokenExpirationDays = verifiedJwtTokenExpirationDays;
     }
@@ -43,52 +48,15 @@ export class EmailTokenServiceImpl implements EmailTokenService {
     public static create (
         jwtEngine: JwtEngine,
         unverifiedJwtTokenExpirationMinutes : number = UNVERIFIED_JWT_TOKEN_EXPIRATION_MINUTES,
-        verifiedJwtTokenExpirationDays      : number = VERIFIED_JWT_TOKEN_EXPIRATION_DAYS
+        verifiedJwtTokenExpirationDays      : number = VERIFIED_JWT_TOKEN_EXPIRATION_DAYS,
+        jwtDecodeService: JwtDecodeService = JwtDecodeServiceImpl,
     ) : EmailTokenServiceImpl {
         return new EmailTokenServiceImpl(
             jwtEngine,
+            jwtDecodeService,
             unverifiedJwtTokenExpirationMinutes,
-            verifiedJwtTokenExpirationDays
+            verifiedJwtTokenExpirationDays,
         );
-    }
-
-    /**
-     * @deprecated Use JwtService.decodePayloadAudience(token) directly
-     * @param token
-     */
-    public static getTokenAudience (token: string): string | undefined {
-        try {
-            return JwtServiceImpl.decodePayloadAudience(token);
-        } catch (err) {
-            LOG.error(`getTokenAudience: Error: `, err);
-            return undefined;
-        }
-    }
-
-    /**
-     * @deprecated Use JwtService.decodePayloadSubject(token) directly
-     * @param token
-     */
-    public static getTokenSubject (token: string): string | undefined {
-        try {
-            return JwtServiceImpl.decodePayloadSubject(token);
-        } catch (err) {
-            LOG.error(`getTokenSubject: Error: `, err);
-            return undefined;
-        }
-    }
-
-    /**
-     * @deprecated Use JwtService.decodePayloadVerified(token) directly
-     * @param token
-     */
-    public static isTokenVerified (token: string): boolean {
-        try {
-            return JwtServiceImpl.decodePayloadVerified(token);
-        } catch (err) {
-            LOG.error(`getTokenSubject: Error: `, err);
-            return false;
-        }
     }
 
     /**
@@ -124,7 +92,7 @@ export class EmailTokenServiceImpl implements EmailTokenService {
                 return false;
             }
 
-            const payload = JwtServiceImpl.decodePayload(token);
+            const payload = this._jwtDecodeService.decodePayload(token);
             LOG.debug(`payload : ${typeof payload} = `, payload);
 
             if ( requireVerifiedToken ) {
@@ -183,7 +151,7 @@ export class EmailTokenServiceImpl implements EmailTokenService {
                 return false;
             }
 
-            const payload = JwtServiceImpl.decodePayload(token);
+            const payload = this._jwtDecodeService.decodePayload(token);
             if ( payload?.sub !== email ) {
                 LOG.debug(`verifyValidTokenForSubject: "sub" did not match: `, payload?.sub, email);
                 return false;
@@ -253,7 +221,7 @@ export class EmailTokenServiceImpl implements EmailTokenService {
                 return false;
             }
 
-            const payload = JwtServiceImpl.decodePayload(token);
+            const payload = this._jwtDecodeService.decodePayload(token);
 
             if ( requireVerifiedToken ) {
 

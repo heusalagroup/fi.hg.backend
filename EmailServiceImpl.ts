@@ -1,7 +1,6 @@
 // Copyright (c) 2021-2023. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
 
 import { createTransport } from 'nodemailer';
-import { EmailMessage } from "../core/email/types/EmailMessage";
 import { uniq } from "../core/functions/uniq";
 import { trim } from "../core/functions/trim";
 import { LogService } from "../core/LogService";
@@ -9,6 +8,8 @@ import { isArray } from "../core/types/Array";
 import { LogLevel } from "../core/types/LogLevel";
 import { parseBoolean } from "../core/types/Boolean";
 import { parseNonEmptyString } from "../core/types/String";
+
+import { EmailMessage } from "../core/email/types/EmailMessage";
 import { EmailService } from "../core/email/EmailService";
 
 const LOG = LogService.createLogger('EmailServiceImpl');
@@ -53,7 +54,7 @@ export class EmailServiceImpl implements EmailService {
         LOG.info(`Default from address defined as `, this._from);
     }
 
-    public initialize ( config  ?: string ) {
+    public initialize ( config  ?: string ) : void {
 
         config = trim(config ?? '');
 
@@ -117,6 +118,8 @@ export class EmailServiceImpl implements EmailService {
     }
 
     public async sendEmailMessage (message: EmailMessage) {
+
+        if (!this._transporter) throw new TypeError('EmailServiceImpl not initialized');
 
         const to : string[] | string = message?.to;
         const cc : string[] | string = message?.cc ?? [];

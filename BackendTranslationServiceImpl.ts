@@ -15,6 +15,9 @@ const LOG = LogService.createLogger('BackendTranslationService');
 
 export class BackendTranslationServiceImpl implements TranslationService {
 
+    protected constructor () {
+    }
+
     public static create () : TranslationService {
         return BackendTranslationServiceImpl;
     }
