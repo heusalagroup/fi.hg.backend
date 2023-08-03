@@ -1,6 +1,9 @@
 // Copyright (c) 2022-2023. <info@heusalagroup.fi>. All rights reserved.
 
 import { SmsAuthController } from "../core/auth/SmsAuthController";
+import { startsWith } from "../core/functions/startsWith";
+import { trim } from "../core/functions/trim";
+import { trimStart } from "../core/functions/trimStart";
 import { ReadonlyJsonAny } from "../core/Json";
 import { JwtDecodeService } from "../core/jwt/JwtDecodeService";
 import { ResponseEntity } from "../core/request/types/ResponseEntity";
@@ -10,7 +13,7 @@ import { SmsAuthMessageService } from "../core/auth/SmsAuthMessageService";
 import { SmsTokenService } from "../core/auth/SmsTokenService";
 import { SmsVerificationService } from "../core/auth/SmsVerificationService";
 import { LogService } from "../core/LogService";
-import { isAuthenticateSmsDTO } from "../core/auth/sms/types/AuthenticateSmsDTO";
+import { AuthenticateSmsDTO, createAuthenticateSmsDTO, isAuthenticateSmsDTO } from "../core/auth/sms/types/AuthenticateSmsDTO";
 import { isVerifySmsTokenDTO } from "../core/auth/sms/types/VerifySmsTokenDTO";
 import { isVerifySmsCodeDTO } from "../core/auth/sms/types/VerifySmsCodeDTO";
 import { SmsTokenDTO } from "../core/auth/sms/types/SmsTokenDTO";
@@ -36,7 +39,8 @@ export class SmsAuthControllerImpl implements SmsAuthController {
         LOG.setLogLevel(level);
     }
 
-    private _defaultLanguage   : Language;
+    private _defaultLanguage : Language;
+    private _defaultPhonePrefix : string;
     private _smsTokenService : SmsTokenService;
     private _smsVerificationService : SmsVerificationService;
     private _smsAuthMessageService : SmsAuthMessageService;
@@ -44,12 +48,14 @@ export class SmsAuthControllerImpl implements SmsAuthController {
 
     protected constructor (
         defaultLanguage: Language = Language.ENGLISH,
+        defaultPhonePrefix: string,
         smsTokenService: SmsTokenService,
         smsVerificationService: SmsVerificationService,
         smsAuthMessageService: SmsAuthMessageService,
         jwtDecodeService: JwtDecodeService,
     ) {
         this._defaultLanguage = defaultLanguage;
+        this._defaultPhonePrefix = defaultPhonePrefix;
         this._smsTokenService = smsTokenService;
         this._smsVerificationService = smsVerificationService;
         this._smsAuthMessageService = smsAuthMessageService;
@@ -58,6 +64,7 @@ export class SmsAuthControllerImpl implements SmsAuthController {
 
     public static create (
         defaultLanguage: Language = Language.ENGLISH,
+        defaultPhonePrefix: string,
         smsTokenService: SmsTokenService,
         smsVerificationService: SmsVerificationService,
         smsAuthMessageService: SmsAuthMessageService,
@@ -65,6 +72,7 @@ export class SmsAuthControllerImpl implements SmsAuthController {
     ) {
         return new SmsAuthControllerImpl(
             defaultLanguage,
+            defaultPhonePrefix,
             smsTokenService,
             smsVerificationService,
             smsAuthMessageService,
@@ -81,6 +89,13 @@ export class SmsAuthControllerImpl implements SmsAuthController {
     }
 
     /**
+     * @inheritDoc
+     */
+    public setDefaultPhonePrefix (value: string) : void {
+        this._defaultPhonePrefix = value;
+    }
+
+    /**
      * Handles POST HTTP request to initiate an sms address authentication by
      * sending one time code to the user as a sms message.
      *
@@ -93,7 +108,6 @@ export class SmsAuthControllerImpl implements SmsAuthController {
         body: ReadonlyJsonAny,
         langString: string = ""
     ): Promise<ResponseEntity<SmsTokenDTO | ErrorDTO>> {
-
         try {
 
             const lang: Language = parseLanguage(langString) ?? this._defaultLanguage;
@@ -104,13 +118,14 @@ export class SmsAuthControllerImpl implements SmsAuthController {
                 ).status(400);
             }
 
+            let sms : string = trim(body.sms);
             LOG.debug('authenticateSms: body = ', body);
-            const sms = body.sms;
             if ( !sms ) {
                 return ResponseEntity.badRequest<ErrorDTO>().body(
                     createErrorDTO(`body.sms required`, 400)
                 ).status(400);
             }
+            sms = startsWith(sms, '+') ? sms : `${this._defaultPhonePrefix}${startsWith(sms, '0') ? sms.substring(1) : sms}`;
 
             const code: string = this._smsVerificationService.createVerificationCode(sms);
             const smsToken: SmsTokenDTO = this._smsTokenService.createUnverifiedSmsToken(sms);
