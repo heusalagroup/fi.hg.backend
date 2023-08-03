@@ -1,6 +1,5 @@
 // Copyright (c) 2022-2023. <info@heusalagroup.fi>. All rights reserved.
 
-import { SmsMessage } from "../core/sms/types/SmsMessage";
 import { TwilioMessageClient } from "../core/twilio/TwilioMessageClient";
 import { Language } from "../core/types/Language";
 import { TranslationService } from "../core/i18n/TranslationService";
@@ -32,6 +31,7 @@ export class SmsAuthMessageServiceImpl implements SmsAuthMessageService {
     /**
      *
      * @param smsService
+     * @param backendTranslationService
      */
     protected constructor (
         smsService: TwilioMessageClient,
