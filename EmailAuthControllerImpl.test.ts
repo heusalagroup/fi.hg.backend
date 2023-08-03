@@ -60,8 +60,6 @@ describe('EmailAuthControllerImpl', () => {
 
     });
 
-    // Now, for each method of the controller, create a set of tests that cover all the possible behaviors
-
     describe('authenticateEmail', () => {
 
         it('should return bad request if the body is not an AuthenticateEmailDTO', async () => {
