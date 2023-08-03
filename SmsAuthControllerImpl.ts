@@ -1,6 +1,7 @@
 // Copyright (c) 2022-2023. <info@heusalagroup.fi>. All rights reserved.
 
 import { SmsAuthController } from "../core/auth/SmsAuthController";
+import { EmailUtils } from "../core/EmailUtils";
 import { startsWith } from "../core/functions/startsWith";
 import { trim } from "../core/functions/trim";
 import { trimStart } from "../core/functions/trimStart";
@@ -125,7 +126,7 @@ export class SmsAuthControllerImpl implements SmsAuthController {
                     createErrorDTO(`body.sms required`, 400)
                 ).status(400);
             }
-            sms = startsWith(sms, '+') ? sms : `${this._defaultPhonePrefix}${startsWith(sms, '0') ? sms.substring(1) : sms}`;
+            sms = EmailUtils.normalizeEmailAddress(sms, this._defaultPhonePrefix);
 
             const code: string = this._smsVerificationService.createVerificationCode(sms);
             const smsToken: SmsTokenDTO = this._smsTokenService.createUnverifiedSmsToken(sms);
