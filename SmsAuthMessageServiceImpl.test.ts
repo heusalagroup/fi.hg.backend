@@ -1,25 +1,25 @@
 // Copyright (c) 2023. Heusala Group Oy <info@heusalagroup.fi>. All rights reserved.
 
-import { T_M_AUTH_CODE_BODY_HTML, T_M_AUTH_CODE_BODY_TEXT, T_M_AUTH_CODE_FOOTER_HTML, T_M_AUTH_CODE_FOOTER_TEXT, T_M_AUTH_CODE_HEADER_HTML, T_M_AUTH_CODE_HEADER_TEXT, T_M_AUTH_CODE_SUBJECT } from "../core/auth/email/email-auth-translations";
-import { EmailService } from "../core/email/EmailService";
+import { T_M_AUTH_CODE_BODY_HTML, T_M_AUTH_CODE_BODY_TEXT, T_M_AUTH_CODE_FOOTER_HTML, T_M_AUTH_CODE_FOOTER_TEXT, T_M_AUTH_CODE_HEADER_HTML, T_M_AUTH_CODE_HEADER_TEXT, T_M_AUTH_CODE_SUBJECT } from "../core/auth/sms/sms-auth-translations";
 import { TranslationService } from "../core/i18n/TranslationService";
+import { TwilioMessageClient } from "../core/twilio/TwilioMessageClient";
 import { Language } from "../core/types/Language";
 import { LogLevel } from "../core/types/LogLevel";
-import { EmailAuthMessageServiceImpl } from './EmailAuthMessageServiceImpl';
+import { SmsAuthMessageServiceImpl } from './SmsAuthMessageServiceImpl';
 
-describe('EmailAuthMessageServiceImpl', () => {
-    let mockEmailService : EmailService;
+describe('SmsAuthMessageServiceImpl', () => {
+    let mockSmsService : TwilioMessageClient;
     let mockTranslationService : TranslationService;
 
     beforeAll(() => {
-        EmailAuthMessageServiceImpl.setLogLevel(LogLevel.NONE);
+        SmsAuthMessageServiceImpl.setLogLevel(LogLevel.NONE);
     });
 
     beforeEach(() => {
         // Create mocks
-        mockEmailService = {
-            sendEmailMessage: jest.fn().mockResolvedValue({})
-        } as unknown as EmailService;
+        mockSmsService = {
+            sendSms: jest.fn().mockResolvedValue({})
+        } as unknown as TwilioMessageClient;
         mockTranslationService = {
             translateKeys: jest.fn().mockResolvedValue({})
         } as unknown as TranslationService;
@@ -28,9 +28,9 @@ describe('EmailAuthMessageServiceImpl', () => {
     describe('sendAuthenticationCode', () => {
 
         it('calls the translation service with the correct parameters', async () => {
-            const service = EmailAuthMessageServiceImpl.create(mockEmailService, mockTranslationService);
+            const service = SmsAuthMessageServiceImpl.create(mockSmsService, mockTranslationService);
             const lang : Language = Language.ENGLISH;
-            const email = 'test@example.com';
+            const sms = 'test@example.com';
             const code = '1234';
             const translationKeys = [
                 "m.authCode.subject",
@@ -43,16 +43,16 @@ describe('EmailAuthMessageServiceImpl', () => {
             ];
             const translationParams = { CODE: code };
 
-            await service.sendAuthenticationCode(lang, email, code);
+            await service.sendAuthenticationCode(lang, sms, code);
             expect(mockTranslationService.translateKeys).toHaveBeenCalledWith(
                 lang, translationKeys, translationParams
             );
         });
 
-        it('sends an email with the correct parameters', async () => {
-            const service = EmailAuthMessageServiceImpl.create(mockEmailService, mockTranslationService);
+        it('sends an sms with the correct parameters', async () => {
+            const service = SmsAuthMessageServiceImpl.create(mockSmsService, mockTranslationService);
             const lang : Language = Language.ENGLISH;
-            const email = 'test@example.com';
+            const sms = 'test@example.com';
             const code = '1234';
             const translations = {
                 [T_M_AUTH_CODE_SUBJECT]: 'subject',
@@ -65,15 +65,15 @@ describe('EmailAuthMessageServiceImpl', () => {
             };
             (mockTranslationService.translateKeys as any).mockResolvedValue(translations);
 
-            await service.sendAuthenticationCode(lang, email, code);
+            await service.sendAuthenticationCode(lang, sms, code);
 
-            const expectedEmail = {
-                to: email,
+            const expectedSms = {
+                to: sms,
                 subject: translations[T_M_AUTH_CODE_SUBJECT],
                 content: translations[T_M_AUTH_CODE_HEADER_TEXT] + translations[T_M_AUTH_CODE_BODY_TEXT] + translations[T_M_AUTH_CODE_FOOTER_TEXT],
                 htmlContent: translations[T_M_AUTH_CODE_HEADER_HTML] + translations[T_M_AUTH_CODE_BODY_HTML] + translations[T_M_AUTH_CODE_FOOTER_HTML]
             };
-            expect(mockEmailService.sendEmailMessage).toHaveBeenCalledWith(expectedEmail);
+            expect(mockSmsService.sendSms).toHaveBeenCalledWith(expectedSms);
         });
     });
 

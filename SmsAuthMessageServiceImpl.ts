@@ -1,6 +1,7 @@
 // Copyright (c) 2022-2023. <info@heusalagroup.fi>. All rights reserved.
 
-import { EmailMessage } from "../core/email/types/EmailMessage";
+import { SmsMessage } from "../core/sms/types/SmsMessage";
+import { TwilioMessageClient } from "../core/twilio/TwilioMessageClient";
 import { Language } from "../core/types/Language";
 import { TranslationService } from "../core/i18n/TranslationService";
 import {
@@ -11,49 +12,48 @@ import {
     T_M_AUTH_CODE_HEADER_HTML,
     T_M_AUTH_CODE_HEADER_TEXT,
     T_M_AUTH_CODE_SUBJECT
-} from "../core/auth/email/email-auth-translations";
+} from "../core/auth/sms/sms-auth-translations";
 import { BackendTranslationServiceImpl } from "./BackendTranslationServiceImpl";
-import { EmailAuthMessageService } from "../core/auth/EmailAuthMessageService";
+import { SmsAuthMessageService } from "../core/auth/SmsAuthMessageService";
 import { LogService } from "../core/LogService";
 import { LogLevel } from "../core/types/LogLevel";
-import { EmailService } from "../core/email/EmailService";
 
-const LOG = LogService.createLogger('EmailAuthMessageServiceImpl');
+const LOG = LogService.createLogger('SmsAuthMessageServiceImpl');
 
-export class EmailAuthMessageServiceImpl implements EmailAuthMessageService {
+export class SmsAuthMessageServiceImpl implements SmsAuthMessageService {
 
     public static setLogLevel (level: LogLevel) {
         LOG.setLogLevel(level);
     }
 
-    private readonly _emailService : EmailService;
+    private readonly _smsService : TwilioMessageClient;
     private readonly _backendTranslationService : TranslationService;
 
     /**
      *
-     * @param emailService
+     * @param smsService
      */
     protected constructor (
-        emailService: EmailService,
+        smsService: TwilioMessageClient,
         backendTranslationService: TranslationService,
     ) {
-        this._emailService = emailService;
+        this._smsService = smsService;
         this._backendTranslationService = backendTranslationService;
     }
 
     public static create (
-        emailService: EmailService,
+        smsService: TwilioMessageClient,
         backendTranslationService : TranslationService = BackendTranslationServiceImpl,
     ) {
-        return new EmailAuthMessageServiceImpl(
-            emailService,
+        return new SmsAuthMessageServiceImpl(
+            smsService,
             backendTranslationService,
         );
     }
 
     public async sendAuthenticationCode (
         lang: Language,
-        email: string,
+        sms: string,
         code: string
     ): Promise<void> {
 
@@ -75,20 +75,14 @@ export class EmailAuthMessageServiceImpl implements EmailAuthMessageService {
             translationParams
         );
 
-        const subject: string = translations[T_M_AUTH_CODE_SUBJECT];
         const contentText: string = translations[T_M_AUTH_CODE_HEADER_TEXT] + translations[T_M_AUTH_CODE_BODY_TEXT] + translations[T_M_AUTH_CODE_FOOTER_TEXT];
-        const contentHtml: string = translations[T_M_AUTH_CODE_HEADER_HTML] + translations[T_M_AUTH_CODE_BODY_HTML] + translations[T_M_AUTH_CODE_FOOTER_HTML];
 
-        await this._emailService.sendEmailMessage(
-            {
-                to: email,
-                subject,
-                content: contentText,
-                htmlContent: contentHtml
-            } as EmailMessage
+        await this._smsService.sendSms(
+            contentText,
+            sms,
         );
 
-        LOG.info(`sendAuthenticationCode: Sent successfully to ${email}`);
+        LOG.info(`sendAuthenticationCode: Sent successfully to ${sms}`);
 
     }
 
