@@ -52,18 +52,18 @@ describe('SmsTokenServiceImpl', () => {
     describe('verifyToken', () => {
         it('verifies the token', () => {
             // Prepare
-            const email = 'foo@example.fi';
+            const sms = 'foo@example.fi';
             const token = 'token';
             const requireVerifiedToken = true;
             const alg = 'HS256';
 
             (jwtDecodeService.decodePayload as any).mockReturnValue({
-                sub: email,
+                sub: sms,
                 exp: 123
             });
 
             // Execute
-            const result = service.verifyToken(email, token, requireVerifiedToken, alg);
+            const result = service.verifyToken(sms, token, requireVerifiedToken, alg);
 
             // Assert
             expect(result).toBeDefined();
@@ -82,17 +82,17 @@ describe('SmsTokenServiceImpl', () => {
 
         it('verifies the token for a subject', () => {
             // Prepare
-            const email = 'foo@example.fi';
+            const sms = 'foo@example.fi';
             const token = 'token';
             const alg = 'HS256';
 
             (jwtDecodeService.decodePayload as any).mockReturnValue({
-                sub: email,
+                sub: sms,
                 exp: 123
             });
 
             // Execute
-            const result = service.verifyValidTokenForSubject(token, email, alg);
+            const result = service.verifyValidTokenForSubject(token, sms, alg);
 
             // Assert
             expect(result).toBeDefined();
@@ -130,13 +130,13 @@ describe('SmsTokenServiceImpl', () => {
     describe('verifyTokenOnly', () => {
         it('verifies the token only', () => {
             // Prepare
-            const email = 'foo@example.fi';
+            const sms = 'foo@example.fi';
             const token = 'token';
             const requireVerifiedToken = true;
             const alg = 'HS256';
 
             (jwtDecodeService.decodePayload as any).mockReturnValue({
-                sub: email,
+                sub: sms,
                 exp: 123
             });
 
@@ -160,23 +160,23 @@ describe('SmsTokenServiceImpl', () => {
     });
 
     describe('createUnverifiedSmsToken', () => {
-        it('creates an unverified email token', () => {
+        it('creates an unverified sms token', () => {
             // Prepare
-            const email = 'foo@example.fi';
+            const sms = 'foo@example.fi';
             const alg = 'HS256';
 
             // Execute
-            const result = service.createUnverifiedSmsToken(email, alg);
+            const result = service.createUnverifiedSmsToken(sms, alg);
 
             // Assert
             expect(result).toBeDefined();
             expect(result.token).toBeDefined();
-            expect(result.email).toBe(email);
+            expect(result.sms).toBe(sms);
 
             expect(jwtEngine.sign).toHaveBeenCalledTimes(1);
             expect(jwtEngine.sign).toHaveBeenCalledWith(
                 {
-                    aud: email,
+                    aud: sms,
                     exp: expect.any(Number)
                 },
                 alg
@@ -186,25 +186,25 @@ describe('SmsTokenServiceImpl', () => {
     });
 
     describe('createVerifiedSmsToken', () => {
-        it('creates a verified email token', () => {
+        it('creates a verified sms token', () => {
             // Prepare
-            const email = 'foo@example.fi';
+            const sms = 'foo@example.fi';
             const alg = 'HS256';
 
             // Execute
-            const result = service.createVerifiedSmsToken(email, alg);
+            const result = service.createVerifiedSmsToken(sms, alg);
 
             // Assert
             expect(result).toBeDefined();
             expect(result.token).toBe('signature');
-            expect(result.email).toBe(email);
+            expect(result.sms).toBe(sms);
             expect(result.verified).toBe(true);
 
             expect(jwtEngine.sign).toHaveBeenCalledTimes(1);
             expect(jwtEngine.sign).toHaveBeenCalledWith(
                 {
                     exp: expect.any(Number),
-                    sub: email
+                    sub: sms
                 },
                 alg
             );
