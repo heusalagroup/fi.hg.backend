@@ -33,13 +33,13 @@ describe('SmsAuthMessageServiceImpl', () => {
             const sms = 'test@example.com';
             const code = '1234';
             const translationKeys = [
-                "m.authCode.subject",
-                "m.authCode.headerText",
-                "m.authCode.bodyText",
-                "m.authCode.footerText",
-                "m.authCode.headerHtml",
-                "m.authCode.bodyHtml",
-                "m.authCode.footerHtml",
+                "sms.m.authCode.subject",
+                "sms.m.authCode.headerText",
+                "sms.m.authCode.bodyText",
+                "sms.m.authCode.footerText",
+                "sms.m.authCode.headerHtml",
+                "sms.m.authCode.bodyHtml",
+                "sms.m.authCode.footerHtml",
             ];
             const translationParams = { CODE: code };
 
@@ -47,6 +47,7 @@ describe('SmsAuthMessageServiceImpl', () => {
             expect(mockTranslationService.translateKeys).toHaveBeenCalledWith(
                 lang, translationKeys, translationParams
             );
+
         });
 
         it('sends an sms with the correct parameters', async () => {
@@ -73,7 +74,11 @@ describe('SmsAuthMessageServiceImpl', () => {
                 content: translations[T_M_AUTH_CODE_HEADER_TEXT] + translations[T_M_AUTH_CODE_BODY_TEXT] + translations[T_M_AUTH_CODE_FOOTER_TEXT],
                 htmlContent: translations[T_M_AUTH_CODE_HEADER_HTML] + translations[T_M_AUTH_CODE_BODY_HTML] + translations[T_M_AUTH_CODE_FOOTER_HTML]
             };
-            expect(mockSmsService.sendSms).toHaveBeenCalledWith(expectedSms);
+
+            expect(mockSmsService.sendSms).toHaveBeenCalledWith(
+                expectedSms.content,
+                expectedSms.to
+            );
         });
     });
 
