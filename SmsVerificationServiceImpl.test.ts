@@ -29,7 +29,7 @@ describe('SmsVerificationServiceImpl', () => {
     describe('destroy', () => {
         it('clears all timers and codes', () => {
             const service = SmsVerificationServiceImpl.create();
-            const code = service.createVerificationCode('+358409970704');
+            /*const code = */service.createVerificationCode('+358409970704');
             service.destroy();
             // Check the timer is cleared and codes array is empty
         });

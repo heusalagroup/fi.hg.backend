@@ -50,7 +50,9 @@ describe('BackendTranslationServiceImpl', () => {
     describe('translateJob', () => {
         it('should execute translation job', async () => {
             const lang = Language.ENGLISH;
-            const callback = jest.fn((t: TranslationFunction) => 'translation_result');
+            const callback = jest.fn((
+                // @ts-ignore
+                t: TranslationFunction) => 'translation_result');
 
             (changeLanguage as jest.Mock).mockResolvedValueOnce('translator');
 

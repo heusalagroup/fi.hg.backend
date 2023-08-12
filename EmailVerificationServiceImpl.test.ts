@@ -29,7 +29,7 @@ describe('EmailVerificationServiceImpl', () => {
     describe('destroy', () => {
         it('clears all timers and codes', () => {
             const service = EmailVerificationServiceImpl.create();
-            const code = service.createVerificationCode('test@example.com');
+            // const code = service.createVerificationCode('test@example.com');
             service.destroy();
             // Check the timer is cleared and codes array is empty
         });

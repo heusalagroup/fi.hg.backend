@@ -1,10 +1,7 @@
 // Copyright (c) 2022-2023. <info@heusalagroup.fi>. All rights reserved.
 
 import { SmsAuthController } from "../core/auth/SmsAuthController";
-import { EmailUtils } from "../core/EmailUtils";
-import { startsWith } from "../core/functions/startsWith";
 import { trim } from "../core/functions/trim";
-import { trimStart } from "../core/functions/trimStart";
 import { ReadonlyJsonAny } from "../core/Json";
 import { JwtDecodeService } from "../core/jwt/JwtDecodeService";
 import { PhoneNumberUtils } from "../core/PhoneNumberUtils";
@@ -15,7 +12,7 @@ import { SmsAuthMessageService } from "../core/auth/SmsAuthMessageService";
 import { SmsTokenService } from "../core/auth/SmsTokenService";
 import { SmsVerificationService } from "../core/auth/SmsVerificationService";
 import { LogService } from "../core/LogService";
-import { AuthenticateSmsDTO, createAuthenticateSmsDTO, isAuthenticateSmsDTO } from "../core/auth/sms/types/AuthenticateSmsDTO";
+import { isAuthenticateSmsDTO } from "../core/auth/sms/types/AuthenticateSmsDTO";
 import { isVerifySmsTokenDTO } from "../core/auth/sms/types/VerifySmsTokenDTO";
 import { isVerifySmsCodeDTO } from "../core/auth/sms/types/VerifySmsCodeDTO";
 import { SmsTokenDTO } from "../core/auth/sms/types/SmsTokenDTO";
