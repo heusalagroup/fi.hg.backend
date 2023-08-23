@@ -1,7 +1,7 @@
 // Copyright (c) 2022-2023. <info@heusalagroup.fi>. All rights reserved.
 
 import { EmailAuthController } from "../core/auth/EmailAuthController";
-import { ReadonlyJsonAny } from "../core/Json";
+import { JsonAny, ReadonlyJsonAny } from "../core/Json";
 import { JwtDecodeService } from "../core/jwt/JwtDecodeService";
 import { ResponseEntity } from "../core/request/types/ResponseEntity";
 import { createErrorDTO, ErrorDTO } from "../core/types/ErrorDTO";
@@ -12,11 +12,16 @@ import { EmailVerificationService } from "../core/auth/EmailVerificationService"
 import { LogService } from "../core/LogService";
 import { isAuthenticateEmailDTO } from "../core/auth/email/types/AuthenticateEmailDTO";
 import { isVerifyEmailTokenDTO } from "../core/auth/email/types/VerifyEmailTokenDTO";
-import { isVerifyEmailCodeDTO } from "../core/auth/email/types/VerifyEmailCodeDTO";
-import { EmailTokenDTO } from "../core/auth/email/types/EmailTokenDTO";
+import {
+    createVerifyEmailCodeDTO,
+    isVerifyEmailCodeDTO,
+    VerifyEmailCodeDTO
+} from "../core/auth/email/types/VerifyEmailCodeDTO";
+import { createEmailTokenDTO, EmailTokenDTO } from "../core/auth/email/types/EmailTokenDTO";
 import { JwtDecodeServiceImpl } from "./JwtDecodeServiceImpl";
 import { isString } from "../core/types/String";
 import { LogLevel } from "../core/types/LogLevel";
+import { createSendEmailCodeDTO, sendEmailCodeDTO } from "../core/auth/email/types/SendEmailCodeDTO";
 
 const LOG = LogService.createLogger('EmailAuthControllerImpl');
 
@@ -146,7 +151,6 @@ export class EmailAuthControllerImpl implements EmailAuthController {
     ): Promise<ResponseEntity<EmailTokenDTO | ErrorDTO>> {
 
         try {
-
             if ( !isVerifyEmailCodeDTO(body) ) {
                 LOG.debug(`Access denied:`, body);
                 return ResponseEntity.badRequest<ErrorDTO>().body(
@@ -246,6 +250,58 @@ export class EmailAuthControllerImpl implements EmailAuthController {
             throw new TypeError(`EmailAuthController.verifyTokenAndReturnSubject: Token was not verified: ${token}`);
         }
         return subject;
+    }
+
+    /**
+     * Handles POST HTTP request to initiate an email address authentication by
+     * sending one time code to the user as a email message.
+     *
+     * The message should be in format `AuthenticateEmailDTO`.
+     *
+     * Returns {sendEmailCodeDTO}
+     *
+     * @param body {AuthenticateEmailDTO}
+     * @param langString {Language} The optional language of the message
+     */
+    public async authenticateEmailWithoutLogin (
+        body: ReadonlyJsonAny,
+        langString: string = ""
+    ): Promise<sendEmailCodeDTO|ResponseEntity<ErrorDTO>> {
+
+        try {
+
+            if ( !isAuthenticateEmailDTO(body) ) {
+                return ResponseEntity.badRequest<ErrorDTO>().body(
+                    createErrorDTO(`Body not AuthenticateEmailDTO`, 400)
+                ).status(400);
+            }
+
+            LOG.debug('authenticateEmail: body = ', body);
+            const email = body.email;
+            if ( !email ) {
+                return ResponseEntity.badRequest<ErrorDTO>().body(
+                    createErrorDTO(`body.email required`, 400)
+                ).status(400);
+            }
+            const lang: Language = parseLanguage(langString) ?? this._defaultLanguage;
+            const code: string = this._emailVerificationService.createVerificationCode(email);
+            const emailToken: EmailTokenDTO = this._emailTokenService.createUnverifiedEmailToken(email);
+
+            const emailResponse = createSendEmailCodeDTO(
+                emailToken,
+                code,
+                lang
+            );
+
+            return emailResponse
+
+        } catch (err) {
+            LOG.error(`ERROR: `, err);
+            return ResponseEntity.internalServerError<ErrorDTO>().body(
+                createErrorDTO('Internal Server Error', 500)
+            ).status(500);
+        }
+
     }
 
 }
